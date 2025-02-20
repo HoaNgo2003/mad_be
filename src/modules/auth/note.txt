@@ -1,0 +1,2 @@
+- using jwt
+login using email, pass, google
