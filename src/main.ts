@@ -6,10 +6,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as basicAuth from 'express-basic-auth';
 import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
-
+import * as path from 'path';
+import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
 
+  app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
   await app.startAllMicroservices();
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });

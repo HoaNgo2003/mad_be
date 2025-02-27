@@ -18,12 +18,8 @@ import {
 } from '@dataui/crud-request';
 import { GetManyDefaultResponse } from '@dataui/crud';
 
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { BaseMySqlEntity } from '../entities/base-mysql.entity';
 import { pageQuery } from '../paging/paging.helper';
-
-dayjs.extend(utc);
 
 @Injectable()
 export class BaseMySqlService<T extends BaseMySqlEntity> {
@@ -43,7 +39,7 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
 
   async getMany(
     parsed: Partial<ParsedRequestParams>,
-  ): Promise<GetManyDefaultResponse<T> | T[]> {
+  ): Promise<T[] | GetManyDefaultResponse<T>> {
     const where = this.convertFilter(parsed.filter) || {};
     const { take, skip } = pageQuery({
       page: parsed.page,
@@ -114,7 +110,7 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
       throw new NotFoundException(`Entity not found`);
     }
 
-    entity.deletedAt = dayjs.utc().toDate();
+    entity.deletedAt = new Date();
     await this.repository.save(entity);
     return true;
   }

@@ -1,13 +1,15 @@
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BaseMySqlService } from 'src/common/services/base-mysql.service';
-import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { BaseMySqlService } from 'src/common/services/base-mysql.service';
 
-export class UserService extends BaseMySqlService<User> {
+@Injectable()
+export class UsersService extends BaseMySqlService<User> {
   constructor(
     @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private repo: Repository<User>,
   ) {
-    super(userRepo);
+    super(repo);
   }
 }
