@@ -9,6 +9,18 @@ import {
   FindManyOptions,
   FindOneOptions,
   FindOptionsOrder,
+  FindOptionsWhere,
+  Between,
+  LessThan,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Equal,
+  Not,
+  In,
+  IsNull,
+  Like,
+  ILike,
 } from 'typeorm';
 import {
   ParsedRequestParams,
@@ -25,13 +37,13 @@ import { pageQuery } from '../paging/paging.helper';
 export class BaseMySqlService<T extends BaseMySqlEntity> {
   constructor(protected readonly repository: Repository<T>) {}
 
-  async getOne(parsed: Partial<ParsedRequestParams>): Promise<T> {
+  async getOne(parsed: Partial<ParsedRequestParams>): Promise<T | null> {
     const where = this.convertFilter(parsed.filter) || {};
     const findOptions = this.createFindOneOptions(parsed);
     const entity = await this.repository.findOne({ where, ...findOptions });
 
     if (!entity) {
-      throw new NotFoundException(`Entity not found`);
+      return null;
     }
 
     return entity;
@@ -67,12 +79,18 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
     }
     return entities;
   }
-
-  async createOne(dto: DeepPartial<T>): Promise<T> {
-    const entity = this.repository.create(dto);
-    return this.repository.save(entity);
+  async createOne<DTO extends DeepPartial<T>>(dto: DTO): Promise<T> {
+    try {
+      const entity = this.repository.create(dto);
+      const result: T = await this.repository.save(entity);
+      if (!result) {
+        throw new BadRequestException('Failed to create entity');
+      }
+      return result;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
-
   async createMany(dto: DeepPartial<T>[]): Promise<T[]> {
     const entities = this.repository.create(dto);
     return this.repository.save(entities);
@@ -92,15 +110,6 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
     Object.assign(entity, dto);
     return this.repository.save(entity);
   }
-
-  //   async updateMany(
-  //     parsed: Partial<ParsedRequestParams>,
-  //     dto: DeepPartial<T>,
-  //   ): Promise<{ affected: number }> {
-  //     const where = this.convertFilter(parsed.filter) || {};
-  //     const result = await this.repository.update(where, dto);
-  //     return { affected: result.affected || 0 };
-  //   }
 
   async softDeleteOne(parsed: Partial<ParsedRequestParams>): Promise<boolean> {
     const where = this.convertFilter(parsed.filter) || {};
@@ -174,14 +183,14 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
     }, {} as FindOptionsOrder<T>);
   }
 
-  protected convertFilter(filter: QueryFilter[] = []): Record<string, any> {
-    return filter.reduce(
-      (acc, { field, operator, value }) => {
-        acc[field] = this.convertOperator(operator, value);
-        return acc;
-      },
-      {} as Record<string, any>,
-    );
+  protected convertFilter(filter: QueryFilter[] = []): FindOptionsWhere<T> {
+    const where = {} as FindOptionsWhere<T>;
+
+    filter.forEach(({ field, operator, value }) => {
+      where[field] = this.convertOperator(operator, value);
+    });
+
+    return where;
   }
 
   protected createPopulate(join: QueryJoin[] = []): string[] {
@@ -192,42 +201,49 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
     switch (operator) {
       case 'eq':
       case '$eq':
-        return value;
+        return Equal(value);
       case 'ne':
       case '$ne':
-        return { $ne: value };
+        return Not(Equal(value));
       case 'gt':
       case '$gt':
-        return { $gt: value };
+        return MoreThan(value);
       case 'lt':
       case '$lt':
-        return { $lt: value };
+        return LessThan(value);
       case 'gte':
       case '$gte':
-        return { $gte: value };
+        return MoreThanOrEqual(value);
       case 'lte':
       case '$lte':
-        return { $lte: value };
+        return LessThanOrEqual(value);
       case 'in':
       case '$in':
-        return { $in: value };
+        return In(value);
       case 'nin':
       case '$nin':
-        return { $nin: value };
+        return Not(In(value));
       case 'like':
       case '$like':
-        return { $like: `%${value}%` };
+        return Like(`%${value}%`);
       case 'ilike':
       case '$ilike':
-        return { $ilike: `%${value}%` };
+        return ILike(`%${value}%`);
       case 'isnull':
       case '$isnull':
-        return null;
+        return IsNull();
       case 'isnotnull':
       case '$isnotnull':
-        return { $ne: null };
+        return Not(IsNull());
+      case 'between':
+        if (Array.isArray(value) && value.length === 2) {
+          return Between(value[0], value[1]);
+        }
+        throw new BadRequestException(
+          'Between operator requires an array with two values',
+        );
       default:
-        throw new BadRequestException('Invalid operator');
+        return value; // Default to exact match
     }
   }
 }

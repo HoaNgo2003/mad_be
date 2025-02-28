@@ -8,7 +8,7 @@ import {
 import dayjs from 'dayjs';
 
 export abstract class BaseMySqlEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: number;
 
   @CreateDateColumn({ type: 'timestamp' })

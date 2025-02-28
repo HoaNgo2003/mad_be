@@ -8,10 +8,10 @@ export class UserRefreshToken extends BaseMySqlEntity {
   token: string;
 
   @Column()
-  is_used: string;
+  is_used: boolean;
 
   @Column()
-  expired_at: string;
+  expired_at: Date;
 
   @ManyToOne(() => User, (user) => user.tokens, { onDelete: 'CASCADE' })
   user: User;

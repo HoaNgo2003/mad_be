@@ -1,10 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../user/user.service';
-import { ErrorMessage } from 'src/common/error-message';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.getOne({
@@ -16,12 +19,17 @@ export class AuthService {
         },
       ],
     });
-    if (user && !user.status) {
-      throw new BadRequestException(ErrorMessage.User.accountDeactive);
-    }
     if (user && user.password === pass) {
-      return user;
+      const { password, ...result } = user;
+      return result;
     }
     return null;
+  }
+
+  async login(user: any) {
+    const payload = { username: user.username, sub: user.userId };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }

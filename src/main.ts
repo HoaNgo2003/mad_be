@@ -8,6 +8,7 @@ import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
 import * as path from 'path';
 import * as express from 'express';
+import { TransformInterceptor } from './common/intercepter/transform.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
 
@@ -25,13 +26,13 @@ async function bootstrap() {
     basicAuth({
       challenge: true,
       users: {
-        ['admin']: '123456',
+        [process.env.SWAGGER_USERNAME]: process.env.SWAGGER_PASSWORD,
       },
     }),
   );
 
   app.enableCors();
-
+  app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

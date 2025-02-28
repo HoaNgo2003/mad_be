@@ -10,6 +10,10 @@ import { UserVerifyAccount } from './modules/user-verify-account/entities/user-v
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MailModule } from './modules/mail/mail.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { ConfigModule } from '@nestjs/config';
+import { RegisterModule } from './modules/register/register.module';
+import { UserSubscriber } from './modules/user/user.subcriber';
+import { LoginModule } from './modules/login/login.module';
 
 @Module({
   imports: [
@@ -22,13 +26,19 @@ import { UploadModule } from './modules/upload/upload.module';
       database: 'mad_be',
       entities: [User, UserRefreshToken, UserVerifyAccount],
       synchronize: true,
+      subscribers: [UserSubscriber],
       autoLoadEntities: true,
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes config available throughout the app
     }),
     UsersModule,
     AuthModule,
     MailModule,
     EventEmitterModule.forRoot(),
     UploadModule,
+    RegisterModule,
+    LoginModule,
   ],
   controllers: [AppController],
   providers: [AppService],

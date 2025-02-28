@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Delete } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -43,5 +43,21 @@ export class UserController {
   @ApiResponse({ status: 201, description: 'User created', type: User })
   async create(@Body() dto: CreateUserDto): Promise<User> {
     return this.service.createOne(dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a user' })
+  @ApiResponse({ status: 200, description: 'User deleted' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async remove(@Param('id') id: string): Promise<any> {
+    return this.service.softDeleteOne({
+      filter: [
+        {
+          field: 'id',
+          operator: 'eq',
+          value: id,
+        },
+      ],
+    });
   }
 }

@@ -1,22 +1,37 @@
-import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from './mail.service';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { join } from 'path';
 
 @Module({
   imports: [
-    MailerModule.forRoot({
-      transport: {
-        host: 'smtp.gmail.com', // SMTP server (Gmail example)
-        port: 587,
-        secure: false, // true for 465, false for 587
-        auth: {
-          user: 'hoantp@rabiloo.com', // Your email
-          pass: 'pvzo iquc atgx lrbe', // App password (Not your actual email password)
+    ConfigModule,
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (config: ConfigService) => ({
+        transport: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false, // Use TLS (STARTTLS)
+          auth: {
+            user: config.get<string>('MAIL_USERNAME'),
+            pass: config.get<string>('MAIL_PASSWORD'),
+          },
         },
-      },
-      defaults: {
-        from: '"No Reply" <your-email@gmail.com>', // Default sender
-      },
+        defaults: {
+          from: `"No Reply" <${config.get<string>('MAIL_FROM')}>`,
+        },
+        template: {
+          dir: join(process.cwd(), './templates'), // Path to HBS templates
+          adapter: new HandlebarsAdapter(), // Use direct import instead of require()
+          options: {
+            strict: true,
+          },
+        },
+      }),
     }),
   ],
   providers: [MailService],
