@@ -49,7 +49,6 @@ export class LoginService {
         },
       ],
     });
-    console.log(user);
     if (!user.status) {
       throw new BadRequestException(ErrorMessage.User.accountNotActive);
     }
@@ -75,6 +74,7 @@ export class LoginService {
         Date.now() + refreshTokenExpiresIn * 1000 * 60 * 60 * 24,
       ),
       is_used: false,
+      email: user.email,
     };
     try {
       await this.userRefreshTokenService.createOne(data);
@@ -83,5 +83,70 @@ export class LoginService {
       throw new BadRequestException(ErrorMessage.User.failedCreateRefreshToken);
     }
     return { user, accessToken, refreshToken };
+  }
+
+  async refreshToken(refreshToken: string) {
+    const userRefreshToken = await this.userRefreshTokenService.getOne({
+      filter: [
+        {
+          field: 'token',
+          operator: 'eq',
+          value: refreshToken,
+        },
+        {
+          field: 'is_used',
+          operator: 'eq',
+          value: false,
+        },
+      ],
+    });
+    if (!userRefreshToken) {
+      throw new BadRequestException(ErrorMessage.User.refershTokenInvalid);
+    }
+    const user = await this.userService.getOne({
+      filter: [
+        {
+          field: 'email',
+          operator: 'eq',
+          value: userRefreshToken.email,
+        },
+      ],
+    });
+    delete user.password;
+    const accessToken = this.createAccessToken(user);
+    const newRefreshToken = this.generateRefreshToken(user.email);
+    const refreshTokenExpiresIn = parseInt(
+      process.env.REFRESH_TOKEN_EXPIRESIN,
+      10,
+    );
+    userRefreshToken.is_used = true;
+    userRefreshToken.save();
+    const data: Partial<UserRefreshToken> = {
+      user,
+      email: user.email,
+      token: newRefreshToken,
+      expired_at: new Date(
+        Date.now() + refreshTokenExpiresIn * 1000 * 60 * 60 * 24,
+      ),
+      is_used: false,
+    };
+    try {
+      await this.userRefreshTokenService.createOne(data);
+    } catch (e) {
+      Logger.error(e);
+      throw new BadRequestException(ErrorMessage.User.failedCreateRefreshToken);
+    }
+    return { user, accessToken, refreshToken: newRefreshToken };
+  }
+
+  async logout(id: string) {
+    const userRefreshToken =
+      await this.userRefreshTokenService.getUserTokens(id);
+    if (!userRefreshToken) {
+      throw new BadRequestException(ErrorMessage.User.refershTokenInvalid);
+    }
+    userRefreshToken.is_used = true;
+    userRefreshToken.save();
+    return true;
   }
 }

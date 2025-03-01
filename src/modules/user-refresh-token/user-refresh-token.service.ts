@@ -12,4 +12,13 @@ export class UserRefreshTokenService extends BaseMySqlService<UserRefreshToken> 
   ) {
     super(repo);
   }
+  async getUserTokens(userId: string): Promise<UserRefreshToken> {
+    return this.repo
+      .createQueryBuilder('token')
+      .leftJoinAndSelect('token.user', 'user')
+      .where('token.user = :userId', { userId })
+      .andWhere('token.is_used = :isUsed', { isUsed: false })
+      .andWhere('token.expired_at > :now', { now: new Date() })
+      .getOne();
+  }
 }

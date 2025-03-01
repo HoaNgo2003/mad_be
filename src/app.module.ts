@@ -14,6 +14,10 @@ import { ConfigModule } from '@nestjs/config';
 import { RegisterModule } from './modules/register/register.module';
 import { UserSubscriber } from './modules/user/user.subcriber';
 import { LoginModule } from './modules/login/login.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -22,7 +26,7 @@ import { LoginModule } from './modules/login/login.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'newpassword',
+      password: '123456',
       database: 'mad_be',
       entities: [User, UserRefreshToken, UserVerifyAccount],
       synchronize: true,
@@ -39,8 +43,17 @@ import { LoginModule } from './modules/login/login.module';
     UploadModule,
     RegisterModule,
     LoginModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // Serve static files
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

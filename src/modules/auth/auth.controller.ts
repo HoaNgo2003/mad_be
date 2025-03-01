@@ -1,8 +1,11 @@
-import { Controller, Request, Post, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './local-auth.guard';
-import { ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorator/public.decorator';
+import { CurrentUser } from 'src/common/decorator/user.decorator';
+import { User } from '../user/entities/user.entity';
+import { LoginService } from '../login/login.service';
+import { RefreshTokenDto } from '../login/dtos/refresh-token.dto';
 
 @ApiTags('Auth')
 @Controller({
@@ -11,17 +14,22 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 })
 @Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly loginService: LoginService,
+  ) {}
 
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  @ApiBearerAuth()
+  @Post('logout')
+  @ApiOperation({ summary: 'Logout' })
+  async logout(@CurrentUser() user: User) {
+    return await this.loginService.logout(user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
+  @Public()
+  @Post('refresh-token')
+  @ApiOperation({ summary: 'Refresh token' })
+  async refreshToken(@Body() body: RefreshTokenDto) {
+    return await this.loginService.refreshToken(body.refershToken);
   }
 }

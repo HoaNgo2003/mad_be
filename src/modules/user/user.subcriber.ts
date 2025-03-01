@@ -18,7 +18,7 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
     if (user.password) {
       user.password = await bcrypt.hash(
         user.password,
-        parseInt(process.env.SALTORROUNDS) || 10,
+        parseInt(process.env.SALTORROUNDS),
       );
     }
     if (user.status === undefined) {
@@ -27,13 +27,15 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
   }
 
   async beforeUpdate(event: UpdateEvent<User>) {
-    if (!event.entity) return;
+    if (!event.entity || !event.databaseEntity) return;
 
     const user = event.entity;
-    if (user.password) {
+    const oldUser = event.databaseEntity; // Get the existing DB record
+
+    if (user.password && user.password !== oldUser.password) {
       user.password = await bcrypt.hash(
         user.password,
-        parseInt(process.env.SALTORROUNDS) || 10,
+        parseInt(process.env.SALTORROUNDS),
       );
     }
   }

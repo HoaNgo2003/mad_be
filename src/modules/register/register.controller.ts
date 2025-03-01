@@ -7,6 +7,7 @@ import { Controller } from '@nestjs/common';
 import { UsersService } from '../user/user.service';
 import { VerifyUserDto } from './dtos/verify.dto';
 import { ResendDto } from './dtos/resend-otp.dto';
+import { Public } from 'src/common/decorator/public.decorator';
 @ApiTags('Register')
 @Controller({
   version: '1',
@@ -19,6 +20,7 @@ export class RegisterController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  @Public()
   @Post()
   @ApiOperation({ summary: 'Create new account' })
   async register(@Body() body: CreateUserDto) {
@@ -33,12 +35,14 @@ export class RegisterController {
     return user;
   }
 
+  @Public()
   @Post('active-account')
   @ApiOperation({ summary: 'Verify OTP' })
   async verifyOTP(@Body() body: VerifyUserDto) {
     return await this.registerService.verifyOTP(body);
   }
 
+  @Public()
   @Post('resend-otp')
   @ApiOperation({ summary: 'Resend OTP' })
   async resendOTP(@Body() body: ResendDto) {

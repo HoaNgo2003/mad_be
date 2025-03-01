@@ -8,5 +8,6 @@ export const ErrorMessage = {
     accountNotActive: 'Account not active!',
     failedCreateRefreshToken:
       'Failed to create refresh token. Please try again!',
+    refershTokenInvalid: 'Refresh token is invalid!',
   },
 };
