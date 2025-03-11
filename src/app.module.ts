@@ -16,25 +16,24 @@ import { UserSubscriber } from './modules/user/user.subcriber';
 import { LoginModule } from './modules/login/login.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes config available throughout the app
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username: 'root',
-      password: '123456',
-      database: 'mad_be',
+      username: `${process.env.DB_USERNAME}`,
+      password: `${process.env.DB_PASSWORD}`,
+      database: `${process.env.DB_NAME}`,
       entities: [User, UserRefreshToken, UserVerifyAccount],
       synchronize: true,
       subscribers: [UserSubscriber],
       autoLoadEntities: true,
-    }),
-    ConfigModule.forRoot({
-      isGlobal: true, // Makes config available throughout the app
     }),
     UsersModule,
     AuthModule,
@@ -43,9 +42,7 @@ import { join } from 'path';
     UploadModule,
     RegisterModule,
     LoginModule,
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // Serve static files
-    }),
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [
