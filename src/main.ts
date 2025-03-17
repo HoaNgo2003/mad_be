@@ -22,16 +22,6 @@ async function bootstrap() {
     exclude: ['/'],
   });
 
-  app.use(
-    ['/swagger'],
-    basicAuth({
-      challenge: true,
-      users: {
-        [process.env.SWAGGER_USERNAME]: process.env.SWAGGER_PASSWORD,
-      },
-    }),
-  );
-
   app.enableCors();
   app.useGlobalInterceptors(
     new TransformInterceptor(),
