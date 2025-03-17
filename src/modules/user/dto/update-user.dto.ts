@@ -11,4 +11,22 @@ export class UpdateUserDto extends OmitType(CreateUserDto, [
   @IsDefined()
   @IsOptional()
   profile_picture: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsDefined()
+  @IsOptional()
+  birth_day: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsDefined()
+  @IsOptional()
+  gender: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsDefined()
+  @IsOptional()
+  full_name: string;
 }

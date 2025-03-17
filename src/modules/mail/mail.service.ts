@@ -68,4 +68,30 @@ export class MailService {
       return error;
     }
   }
+
+  @OnEvent('user.forgot-password.send-otp')
+  async sendOTPResetPassword(data: {
+    email: string;
+    otp: string;
+    expireAt: Date;
+  }) {
+    try {
+      const { email, otp, expireAt } = data;
+      console.log(data);
+      await this.mailerService.sendMail({
+        to: email,
+        subject: `Reset your password`,
+        template: './forgot-password',
+        context: {
+          email,
+          otp,
+          expireMinutes: expireAt,
+          year: new Date().getFullYear(),
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
 }

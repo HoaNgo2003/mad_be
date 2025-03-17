@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 import * as path from 'path';
 import * as express from 'express';
 import { TransformInterceptor } from './common/intercepter/transform.interceptor';
+import { CrudRequestInterceptor } from '@dataui/crud';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
 
@@ -32,7 +33,10 @@ async function bootstrap() {
   );
 
   app.enableCors();
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(
+    new TransformInterceptor(),
+    new CrudRequestInterceptor(),
+  );
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

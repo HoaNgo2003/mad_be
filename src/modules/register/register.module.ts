@@ -21,5 +21,6 @@ const validateConstraint = [IsUserExistContraints, IsUserNotFoundContraints];
   ],
   controllers: [RegisterController],
   providers: [...validateConstraint, RegisterService],
+  exports: [RegisterService],
 })
 export class RegisterModule {}

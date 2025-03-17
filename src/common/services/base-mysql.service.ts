@@ -225,6 +225,8 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
         return Not(In(value));
       case 'like':
       case '$like':
+      case 'cont':
+      case '$cont':
         return Like(`%${value}%`);
       case 'ilike':
       case '$ilike':

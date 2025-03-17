@@ -1,6 +1,10 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { UsersService } from '../user/user.service';
-import { LoginUserDto } from './dtos/login.dto';
+import {
+  ForgotPasswordDto,
+  LoginUserDto,
+  VerifyOTPDto,
+} from './dtos/login.dto';
 import * as bcrypt from 'bcrypt';
 import { ErrorMessage } from 'src/common/error-message';
 import * as crypto from 'crypto';
@@ -9,6 +13,8 @@ import { JwtService } from '@nestjs/jwt';
 import { UserRefreshTokenService } from '../user-refresh-token/user-refresh-token.service';
 import { UserRefreshToken } from '../user-refresh-token/entities/user-refresh-token.entity';
 import { instanceToPlain } from 'class-transformer';
+import { UserVerifyAccountService } from '../user-verify-account/user-verify-account.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class LoginService {
@@ -16,6 +22,8 @@ export class LoginService {
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
     private readonly userRefreshTokenService: UserRefreshTokenService,
+    private readonly userVerifyAccountService: UserVerifyAccountService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
   createAccessToken(data: Partial<User>): string {
     const expiresIn = process.env.EXPIRESIN;
@@ -148,5 +156,63 @@ export class LoginService {
     userRefreshToken.is_used = true;
     userRefreshToken.save();
     return true;
+  }
+
+  async verifyOTP(otp: string): Promise<boolean> {
+    const verifyAccount = await this.userVerifyAccountService.getOne({
+      filter: [
+        { field: 'otp', operator: 'eq', value: otp },
+        { field: 'is_used', operator: 'eq', value: false },
+        { field: 'expired_at', operator: 'gte', value: new Date() },
+      ],
+    });
+    if (!verifyAccount) {
+      throw new BadRequestException(ErrorMessage.User.optInvalid);
+    }
+
+    return true;
+  }
+
+  async changePassword(dto: ForgotPasswordDto): Promise<{
+    message: string;
+  }> {
+    const { otp } = dto;
+    const isOTPValid = await this.verifyOTP(dto.otp);
+    if (!isOTPValid) {
+      throw new BadRequestException(ErrorMessage.User.optInvalid);
+    }
+    const verifyOTP = await this.userVerifyAccountService.getOne({
+      filter: [
+        { field: 'email', operator: 'eq', value: dto.email },
+        { field: 'otp', operator: 'eq', value: otp },
+        { field: 'is_used', operator: 'eq', value: false },
+        { field: 'expired_at', operator: 'gte', value: new Date() },
+      ],
+    });
+    try {
+      await this.userVerifyAccountService.updateOne(
+        { filter: [{ field: 'id', operator: 'eq', value: verifyOTP.id }] },
+        { is_used: true },
+      );
+      await this.userService.updateOne(
+        {
+          filter: [
+            {
+              field: 'email',
+              operator: 'eq',
+              value: dto.email,
+            },
+          ],
+        },
+        {
+          password: dto.password,
+        },
+      );
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+    return {
+      message: 'Change password success, login to continue!',
+    };
   }
 }

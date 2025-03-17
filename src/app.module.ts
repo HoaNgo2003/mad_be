@@ -17,6 +17,15 @@ import { LoginModule } from './modules/login/login.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { NotificationModule } from './modules/notification/notification.module';
+import { Plant } from './modules/plant/entities/plant.entity';
+import { PlantBenefit } from './modules/plant-benefit/entities/plant-benefit.entity';
+import { PlantModule } from './modules/plant/plant.module';
+import { PlantCareProcess } from './modules/plant-care-process/entities/plant-care-process.entity';
+import { PlantListTask } from './modules/plant-list-task/entities/plan-list-task.entity';
+import { PlantListTaskModule } from './modules/plant-list-task/plan-list-task.module';
+import { PlantCareProcessModule } from './modules/plant-care-process/plant-care-process.module';
+import { PlantWishList } from './modules/plant-wishlist/entities/plant-wishlist.entity';
+import { PlantWishlistModule } from './modules/plant-wishlist/plan-wishlist.module';
 
 @Module({
   imports: [
@@ -30,7 +39,16 @@ import { NotificationModule } from './modules/notification/notification.module';
       username: `${process.env.DB_USERNAME}`,
       password: `${process.env.DB_PASSWORD}`,
       database: `${process.env.DB_NAME}`,
-      entities: [User, UserRefreshToken, UserVerifyAccount],
+      entities: [
+        User,
+        UserRefreshToken,
+        UserVerifyAccount,
+        Plant,
+        PlantBenefit,
+        PlantCareProcess,
+        PlantListTask,
+        PlantWishList,
+      ],
       synchronize: true,
       subscribers: [UserSubscriber],
       autoLoadEntities: true,
@@ -43,6 +61,10 @@ import { NotificationModule } from './modules/notification/notification.module';
     RegisterModule,
     LoginModule,
     NotificationModule,
+    PlantModule,
+    PlantListTaskModule,
+    PlantCareProcessModule,
+    PlantWishlistModule,
   ],
   controllers: [AppController],
   providers: [

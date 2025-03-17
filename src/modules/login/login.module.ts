@@ -6,11 +6,15 @@ import { LoginController } from './login.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { IsUserNotFoundContraints } from 'src/common/validators/user.validate';
+import { RegisterModule } from '../register/register.module';
+import { UserVerifyAccountModule } from '../user-verify-account/user-verify-account.module';
 const constraint = [IsUserNotFoundContraints];
 @Module({
   imports: [
     UsersModule,
     UserRefreshTokenModule,
+    RegisterModule,
+    UserVerifyAccountModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: () => ({

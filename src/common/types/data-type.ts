@@ -5,3 +5,10 @@ export type JwtPayload = {
   iat?: number;
   status?: boolean;
 };
+
+export enum ESchedule {
+  daily = 'daily',
+  weekly = 'weekly',
+  monthly = 'monthly',
+  biomonthly = 'biomonthly',
+}

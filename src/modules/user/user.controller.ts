@@ -105,6 +105,9 @@ export class UserController {
       type: 'object',
       properties: {
         username: { type: 'string', example: 'JohnDoe' },
+        full_name: { type: 'string', example: 'JohnDoe' },
+        birth_day: { type: 'string', example: 'JohnDoe' },
+        gender: { type: 'string', example: 'JohnDoe' },
         email: { type: 'string', example: 'johndoe@example.com' },
         file: {
           type: 'string',
