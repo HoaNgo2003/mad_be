@@ -17,6 +17,9 @@ import { LoginModule } from './modules/login/login.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { NotificationModule } from './modules/notification/notification.module';
+import { SchedulesModule } from './modules/schedules/schedules.module';
+import { ScheduleRule} from './modules/schedules/entities/schedule-rule.entity';
+import { ScheduleTask} from './modules/schedules/entities/schedule-task.entity';
 
 @Module({
   imports: [
@@ -30,7 +33,7 @@ import { NotificationModule } from './modules/notification/notification.module';
       username: `${process.env.DB_USERNAME}`,
       password: `${process.env.DB_PASSWORD}`,
       database: `${process.env.DB_NAME}`,
-      entities: [User, UserRefreshToken, UserVerifyAccount],
+      entities: [User, UserRefreshToken, UserVerifyAccount, ScheduleRule, ScheduleTask],
       synchronize: true,
       subscribers: [UserSubscriber],
       autoLoadEntities: true,
@@ -43,6 +46,8 @@ import { NotificationModule } from './modules/notification/notification.module';
     RegisterModule,
     LoginModule,
     NotificationModule,
+    SchedulesModule
+    
   ],
   controllers: [AppController],
   providers: [

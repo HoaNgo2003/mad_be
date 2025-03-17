@@ -17,7 +17,7 @@ export class LoginController {
   constructor(private readonly service: LoginService) {}
 
   @Public()
-  @UseGuards(LocalAuthGuard)
+  // @UseGuards(LocalAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Login' })
   async login(@Body() body: LoginUserDto) {
