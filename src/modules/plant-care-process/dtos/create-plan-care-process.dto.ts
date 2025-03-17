@@ -11,7 +11,11 @@ import { ESchedule } from 'src/common/types/data-type';
 import { CreatePlantListTaskDto } from 'src/modules/plant-list-task/dtos/create-plan-list-task.dto';
 
 export class CreatePlantCareProcessDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: `Type of schedule. Accepted values: ${Object.values(ESchedule).join(', ')}`,
+    enum: ESchedule,
+    example: ESchedule.daily,
+  })
   @IsEnum(ESchedule)
   @IsNotEmpty()
   type: ESchedule;

@@ -88,7 +88,7 @@ export class PlantController {
 
   @Public()
   @Post()
-  @ApiOperation({ summary: 'Create one plant with benefits' })
+  @ApiOperation({ summary: 'Create one plant with benefits & process cares' })
   async createPlant(@Body() dto: CreatePlantDto) {
     return this.plantService.createOnePlant(dto);
   }
