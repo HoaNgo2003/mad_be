@@ -10,7 +10,7 @@ export class ParamIdPlantDto {
   @Validate(IsPlantExistContraints, [{ field: 'id' }], {
     message: 'Plant not found',
   })
-  @IsUUID()
+  // @IsUUID()
   @IsString()
   @IsNotEmpty()
   id: string;
@@ -21,7 +21,7 @@ export class ParamIdPlantBenefitDto {
   @Validate(IsPlantBenefitExistContraints, [{ field: 'id' }], {
     message: 'Benefit of plan not found',
   })
-  @IsUUID()
+  // @IsUUID()
   @IsString()
   @IsNotEmpty()
   id: string;

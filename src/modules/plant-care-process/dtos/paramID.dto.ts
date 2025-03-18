@@ -6,7 +6,7 @@ export class ParamIdPlantCareProcessDto {
   //   @Validate(IsPlantExistContraints, [{ field: 'id' }], {
   //     message: 'Plant not found',
   //   })
-  @IsUUID()
+  // @IsUUID()
   @IsString()
   @IsNotEmpty()
   id: string;

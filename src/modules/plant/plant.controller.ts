@@ -118,7 +118,7 @@ export class PlantController {
 
   @Public()
   @Post('/process/plant-name')
-  @ApiOperation({ summary: 'get benefits by plan name' })
+  @ApiOperation({ summary: 'get process by plan name' })
   async getProcessByPlanName(
     @ParsedRequest() req: CrudRequest,
     @Body() dto: QueryName,
