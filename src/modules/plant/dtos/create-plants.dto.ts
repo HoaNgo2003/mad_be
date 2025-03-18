@@ -35,3 +35,10 @@ export class CreatePlantDto {
   @IsOptional()
   plant_processes: CreatePlantCareProcessDto[];
 }
+
+export class QueryName {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+}

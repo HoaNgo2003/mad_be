@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PlantService } from './plant.service';
-import { CreatePlantDto } from './dtos/create-plants.dto';
+import { CreatePlantDto, QueryName } from './dtos/create-plants.dto';
 import { CreateBulkPlantDto } from './dtos/create-bulk-plants.dto';
 import { Public } from 'src/common/decorator/public.decorator';
 import { Plant } from './entities/plant.entity';
@@ -98,6 +98,38 @@ export class PlantController {
   @ApiOperation({ summary: 'Create many plant with benefits' })
   async createBulkPlant(@Body() dto: CreateBulkPlantDto) {
     return this.plantService.createBulkPlants(dto.plants);
+  }
+
+  @Public()
+  @Post('/benefits/plant-name')
+  @ApiOperation({ summary: 'get benefits by plan name' })
+  async getBenefitsByPlanName(
+    @ParsedRequest() req: CrudRequest,
+    @Body() dto: QueryName,
+  ) {
+    const { parsed } = req;
+    parsed.filter = [
+      ...parsed.filter,
+      { field: 'name', operator: 'cont', value: dto.name },
+    ];
+    parsed.join = [...parsed.join, { field: 'plant_benefits' }];
+    return this.plantService.getOne(parsed);
+  }
+
+  @Public()
+  @Post('/process/plant-name')
+  @ApiOperation({ summary: 'get benefits by plan name' })
+  async getProcessByPlanName(
+    @ParsedRequest() req: CrudRequest,
+    @Body() dto: QueryName,
+  ) {
+    const { parsed } = req;
+    parsed.filter = [
+      ...parsed.filter,
+      { field: 'name', operator: 'cont', value: dto.name },
+    ];
+    parsed.join = [...parsed.join, { field: 'plant_processes' }];
+    return this.plantService.getOne(parsed);
   }
 
   @Public()
