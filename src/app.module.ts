@@ -26,6 +26,9 @@ import { PlantListTaskModule } from './modules/plant-list-task/plan-list-task.mo
 import { PlantCareProcessModule } from './modules/plant-care-process/plant-care-process.module';
 import { PlantWishList } from './modules/plant-wishlist/entities/plant-wishlist.entity';
 import { PlantWishlistModule } from './modules/plant-wishlist/plan-wishlist.module';
+import { SchedulesModule } from './modules/schedules/schedules.module';
+import { ScheduleRule} from './modules/schedules/entities/schedule-rule.entity';
+import { ScheduleTask} from './modules/schedules/entities/schedule-task.entity';
 
 @Module({
   imports: [
@@ -48,6 +51,8 @@ import { PlantWishlistModule } from './modules/plant-wishlist/plan-wishlist.modu
         PlantCareProcess,
         PlantListTask,
         PlantWishList,
+        ScheduleRule,
+        ScheduleTask
       ],
       synchronize: true,
       subscribers: [UserSubscriber],
@@ -65,6 +70,8 @@ import { PlantWishlistModule } from './modules/plant-wishlist/plan-wishlist.modu
     PlantListTaskModule,
     PlantCareProcessModule,
     PlantWishlistModule,
+    SchedulesModule
+    
   ],
   controllers: [AppController],
   providers: [

@@ -25,6 +25,7 @@ export class LoginController {
   ) {}
 
   @Public()
+  // @UseGuards(LocalAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Login' })
   async login(@Body() body: LoginUserDto) {
