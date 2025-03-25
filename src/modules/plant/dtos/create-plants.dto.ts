@@ -4,6 +4,7 @@ import {
   IsArray,
   ValidateNested,
   IsOptional,
+  IsDefined,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { PlantBenefitDto } from 'src/modules/plant-benefit/dtos/create-plant-benefit.dto';
@@ -66,4 +67,11 @@ export class QueryName {
 
   @IsOptional()
   file?: any;
+}
+export class NameQuery {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @IsDefined()
+  name: string;
 }
