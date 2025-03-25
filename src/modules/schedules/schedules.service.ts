@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException  } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, IsNull, Repository } from 'typeorm';
 import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ScheduleTask } from './entities/schedule-task.entity';
 
@@ -12,7 +12,7 @@ export class SchedulesService {
 
     @InjectRepository(ScheduleTask)
     private scheduleTaskRepo: Repository<ScheduleTask>,
-  ) {}
+  ) { }
 
   // Lấy danh sách lịch trình chăm sóc cây
   async getTasks() {
@@ -26,6 +26,93 @@ export class SchedulesService {
   async createRule(data: Partial<ScheduleRule>) {
     const rule = this.scheduleRuleRepo.create(data);
     return this.scheduleRuleRepo.save(rule);
+  }
+
+  // Cập nhật rule
+  async updateRule(ruleId: string, data: Partial<ScheduleRule>) {
+    const rule = await this.scheduleRuleRepo.findOne({ where: { id: ruleId } });
+    if (!rule) {
+      throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
+    }
+
+    await this.scheduleRuleRepo.update(ruleId, data);
+    return { message: 'Cập nhật thành công' };
+  }
+
+  async deleteRuleById(ruleId: string) {
+    const rule = await this.scheduleRuleRepo.findOne({ where: { id: ruleId } });
+
+    if (!rule) {
+      throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
+    }
+
+    // Xóa mềm các task liên quan có status = 'pending'
+    const pendingTasks = await this.scheduleTaskRepo.find({
+      where: {
+        rule: { id: ruleId },
+        status: 'pending',
+      },
+    });
+
+    for (const task of pendingTasks) {
+      task.deletedAt = new Date(); // nếu có cột deletedBy trong ScheduleTask
+      await this.scheduleTaskRepo.save(task);
+    }
+
+    // Xóa mềm (cập nhật deletedAt)
+    await this.scheduleRuleRepo.softDelete(ruleId);
+
+    return { message: `Đã xóa rule ID ${ruleId} thành công.` };
+  }
+
+  // Lấy schedule theo userId
+  async getRulesByUserId(userId: number) {
+    return this.scheduleRuleRepo.find({
+      where: { user_id: userId },
+      order: { createdAt: 'DESC' } // Sắp xếp mới nhất lên trên
+    });
+  }
+
+  // Lấy danh sách các task theo userId và date
+  async getTasksByUserAndDate(userId: number, date: string) {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+  
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+  
+    return this.scheduleTaskRepo.find({
+      where: {
+        scheduled_at: Between(start, end),
+        rule: {
+          user_id: userId,
+        },
+        deletedAt: IsNull(), // chỉ lấy task chưa bị xóa mềm
+      },
+      relations: [],
+      order: {
+        status : 'ASC',
+        scheduled_at: 'ASC',
+      },
+    });
+  }
+
+  // Hoàn thành task theo id
+  async markTaskAsDone(taskId: string) {
+    const task = await this.scheduleTaskRepo.findOne({ where: { id: taskId } });
+  
+    if (!task) {
+      throw new NotFoundException(`Không tìm thấy task`);
+    }
+  
+    if (task.status === 'done') {
+      return { message: `Task đã hoàn thành trước đó.` };
+    }
+  
+    task.status = 'done';
+    await this.scheduleTaskRepo.save(task);
+  
+    return { message: `Hoàn thành` };
   }
 
   // Sinh task từ 1 rule dựa vào ID
