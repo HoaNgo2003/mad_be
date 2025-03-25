@@ -26,6 +26,9 @@ import { PlantListTaskModule } from './modules/plant-list-task/plan-list-task.mo
 import { PlantCareProcessModule } from './modules/plant-care-process/plant-care-process.module';
 import { PlantWishList } from './modules/plant-wishlist/entities/plant-wishlist.entity';
 import { PlantWishlistModule } from './modules/plant-wishlist/plan-wishlist.module';
+import { SchedulesModule } from './modules/schedules/schedules.module';
+import { ScheduleRule } from './modules/schedules/entities/schedule-rule.entity';
+import { ScheduleTask } from './modules/schedules/entities/schedule-task.entity';
 import { PlantSearchHistory } from './modules/plant-search-history/entities/plant-search-history.entity';
 import { PlantSearchHistoryModule } from './modules/plant-search-history/plant-search-history.module';
 
@@ -50,6 +53,8 @@ import { PlantSearchHistoryModule } from './modules/plant-search-history/plant-s
         PlantCareProcess,
         PlantListTask,
         PlantWishList,
+        ScheduleRule,
+        ScheduleTask,
         PlantSearchHistory,
       ],
       synchronize: true,
@@ -68,6 +73,8 @@ import { PlantSearchHistoryModule } from './modules/plant-search-history/plant-s
     PlantListTaskModule,
     PlantCareProcessModule,
     PlantWishlistModule,
+    SchedulesModule,
+
     PlantSearchHistoryModule,
   ],
   controllers: [AppController],
