@@ -5,40 +5,65 @@ import {
   ValidateNested,
   IsOptional,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { PlantBenefitDto } from 'src/modules/plant-benefit/dtos/create-plant-benefit.dto';
 import { ApiProperty } from '@dataui/crud/lib/crud';
 import { CreatePlantCareProcessDto } from 'src/modules/plant-care-process/dtos/create-plan-care-process.dto';
 
 export class CreatePlantDto {
-  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  plant_url?: string;
+
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty({ type: PlantBenefitDto, isArray: true })
+  @IsOptional()
+  file?: any;
+
+  @Transform(({ value }) => {
+    try {
+      return typeof value === 'string' ? JSON.parse(value) : value;
+    } catch (e) {
+      return [];
+    }
+  })
   @IsArray()
-  @ValidateNested({ each: true })
+  // @ValidateNested({ each: true })
   @Type(() => PlantBenefitDto)
   @IsOptional()
   plant_benefits: PlantBenefitDto[];
 
-  @ApiProperty({ type: CreatePlantCareProcessDto, isArray: true })
+  @Transform(({ value }) => {
+    try {
+      return typeof value === 'string' ? JSON.parse(value) : value;
+    } catch (e) {
+      return [];
+    }
+  })
   @IsArray()
-  @ValidateNested({ each: true })
+  // @ValidateNested({ each: true })
   @Type(() => CreatePlantCareProcessDto)
   @IsOptional()
   plant_processes: CreatePlantCareProcessDto[];
 }
 
 export class QueryName {
-  @ApiProperty()
+  @ApiProperty({ required: false, nullable: true })
   @IsString()
-  @IsNotEmpty()
-  name: string;
+  @IsOptional()
+  name?: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsString()
+  @IsOptional()
+  plant_google_name?: string | null;
+
+  @IsOptional()
+  file?: any;
 }

@@ -8,8 +8,16 @@ import {
   Param,
   Delete,
   Patch,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { PlantService } from './plant.service';
 import { CreatePlantDto, QueryName } from './dtos/create-plants.dto';
 import { CreateBulkPlantDto } from './dtos/create-bulk-plants.dto';
@@ -20,6 +28,13 @@ import { CrudRequest, ParsedRequest } from '@dataui/crud';
 import { ParamIdPlantBenefitDto, ParamIdPlantDto } from './dtos/paramId.dto';
 import { UpdatePlantDto } from './dtos/update-plants.dto';
 import { PlantBenefitService } from '../plant-benefit/plan-benefit.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { UploadService } from '../upload/upload.service';
+import { CurrentUser } from 'src/common/decorator/user.decorator';
+import { User } from '../user/entities/user.entity';
+import { PlantSearchHistoryService } from '../plant-search-history/plant-search-history.service';
 
 @ApiTags('Plant')
 @Controller({
@@ -30,6 +45,8 @@ export class PlantController {
   constructor(
     private readonly plantService: PlantService,
     private readonly plantBenefitService: PlantBenefitService,
+    private readonly uploadService: UploadService,
+    private readonly searchHistoryService: PlantSearchHistoryService,
   ) {
     // Swagger metadata setup (for getMany)
     const getManyMetadata = Swagger.getParams(this.getMany);
@@ -88,8 +105,47 @@ export class PlantController {
 
   @Public()
   @Post()
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+    }),
+  )
   @ApiOperation({ summary: 'Create one plant with benefits & process cares' })
-  async createPlant(@Body() dto: CreatePlantDto) {
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        description: { type: 'string' },
+        file: { type: 'string', format: 'binary' },
+        plant_benefits: {
+          type: 'string',
+          example: '[{"title": "Benefit 1", "items": ["item 1", "item 2"]}]',
+        },
+        plant_processes: {
+          type: 'string',
+          example:
+            '[{"type": "daily", "list_tasks": [{"time": "08:00", "task": "Water plant"}]}]',
+        },
+      },
+    },
+  })
+  async createPlant(
+    @Body() dto: CreatePlantDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (file) {
+      const { url } = await this.uploadService.uploadFile(file);
+      dto.plant_url = url;
+    }
     return this.plantService.createOnePlant(dto);
   }
 
@@ -114,6 +170,63 @@ export class PlantController {
     ];
     parsed.join = [...parsed.join, { field: 'plant_benefits' }];
     return this.plantService.getOne(parsed);
+  }
+
+  @ApiBearerAuth()
+  @Post('/search/plant')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Get plant by name or search with an image' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        name: { type: 'string' },
+        plant_google_name: { type: 'string' },
+      },
+    },
+  })
+  async searchPlantByName(
+    @ParsedRequest() req: CrudRequest,
+    @Body() dto: QueryName,
+    @CurrentUser() user: User,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const { parsed } = req;
+
+    let searchHistoryDto = {
+      plant_google_name: dto.plant_google_name || null,
+      keyword: dto.name,
+      plant_url: null,
+      user,
+    };
+    if (file) {
+      const { url } = await this.uploadService.uploadFile(file);
+      console.log('Uploaded file URL:', url);
+      searchHistoryDto.plant_url = url;
+    }
+
+    await this.searchHistoryService.createOne(searchHistoryDto);
+    if (dto?.name) {
+      parsed.filter = [
+        ...parsed.filter,
+        { field: 'name', operator: 'cont', value: dto.name },
+      ];
+    }
+    if (dto?.plant_google_name) {
+      parsed.filter = [
+        ...parsed.filter,
+        { field: 'name', operator: 'cont', value: dto.plant_google_name },
+      ];
+    }
+
+    parsed.join = [
+      ...parsed.join,
+      { field: 'plant_benefits' },
+      { field: 'plant_processes' },
+    ];
+    return this.plantService.getMany(parsed);
   }
 
   @Public()
