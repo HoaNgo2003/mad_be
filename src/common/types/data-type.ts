@@ -12,3 +12,7 @@ export enum ESchedule {
   monthly = 'monthly',
   biomonthly = 'biomonthly',
 }
+export enum EReact {
+  like = 'like',
+  dislike = 'dislike',
+}

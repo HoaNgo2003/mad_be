@@ -31,6 +31,13 @@ import { ScheduleRule } from './modules/schedules/entities/schedule-rule.entity'
 import { ScheduleTask } from './modules/schedules/entities/schedule-task.entity';
 import { PlantSearchHistory } from './modules/plant-search-history/entities/plant-search-history.entity';
 import { PlantSearchHistoryModule } from './modules/plant-search-history/plant-search-history.module';
+import { PostsComment } from './modules/posts-comment/entities/posts-comment.entity';
+import { Posts } from './modules/posts/entities/posts.entity';
+import { PostsLike } from './modules/posts-like/entities/posts-like.entity';
+import { PostsShare } from './modules/posts-share/entities/posts-share.entity';
+import { PostsLikeModule } from './modules/posts-like/posts-like.module';
+import { PostsCommentModule } from './modules/posts-comment/posts-comment.module';
+import { PostsModule } from './modules/posts/posts.module';
 
 @Module({
   imports: [
@@ -56,6 +63,10 @@ import { PlantSearchHistoryModule } from './modules/plant-search-history/plant-s
         ScheduleRule,
         ScheduleTask,
         PlantSearchHistory,
+        PostsComment,
+        Posts,
+        PostsLike,
+        PostsShare,
       ],
       synchronize: true,
       subscribers: [UserSubscriber],
@@ -74,8 +85,10 @@ import { PlantSearchHistoryModule } from './modules/plant-search-history/plant-s
     PlantCareProcessModule,
     PlantWishlistModule,
     SchedulesModule,
-
     PlantSearchHistoryModule,
+    PostsLikeModule,
+    PostsCommentModule,
+    PostsModule,
   ],
   controllers: [AppController],
   providers: [

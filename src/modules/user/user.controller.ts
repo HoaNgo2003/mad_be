@@ -6,7 +6,6 @@ import {
   Body,
   Delete,
   UseGuards,
-  Request,
   Patch,
   UseInterceptors,
   UploadedFile,

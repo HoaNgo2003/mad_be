@@ -10,4 +10,7 @@ export const ErrorMessage = {
       'Failed to create refresh token. Please try again!',
     refershTokenInvalid: 'Refresh token is invalid!',
   },
+  Post: {
+    cannotLikeThisPost: "Can't like this post! Please try again!",
+  },
 };

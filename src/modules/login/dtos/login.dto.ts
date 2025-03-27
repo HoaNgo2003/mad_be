@@ -3,10 +3,15 @@ import { IsString, IsEmail, Validate, IsNotEmpty } from 'class-validator';
 import { IsUserNotFoundContraints } from 'src/common/validators/user.validate';
 
 export class LoginUserDto {
-  @ApiProperty({ example: 'Rabiloo@123', description: 'Password of the user' })
+  @ApiProperty({ example: '123456', description: 'Password of the user' })
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty({ example: '1dasdadsaff', description: 'Token of device' })
+  @IsString()
+  @IsNotEmpty()
+  token_device: string;
 
   @ApiProperty({ example: 'johndoe@example.com', description: 'User email' })
   @Validate(IsUserNotFoundContraints, [{ field: 'email' }], {
