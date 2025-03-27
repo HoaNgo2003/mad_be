@@ -1,44 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import * as admin from 'firebase-admin';
+import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 
 @Injectable()
 export class NotificationService {
+  private expo: Expo;
+
   constructor() {
-    this.initializeFirebase();
-  }
-
-  private initializeFirebase() {
-    try {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-      });
-
-      console.log('Firebase initialized successfully');
-    } catch (error) {
-      console.error('Error initializing Firebase:', error);
-      throw new Error(`Firebase initialization failed: ${error.message}`);
-    }
+    this.expo = new Expo();
   }
 
   async sendPushNotification(token: string, title: string, body: string) {
-    const message = {
-      notification: {
-        title,
-        body,
-      },
-      token,
+    if (!Expo.isExpoPushToken(token)) {
+      console.error('❌ Invalid Expo push token:', token);
+      return { success: false, error: 'Invalid Expo push token' };
+    }
+
+    const message: ExpoPushMessage = {
+      to: token,
+      sound: 'default',
+      title,
+      body,
     };
 
     try {
-      const response = await admin.messaging().send(message);
-      return { success: true, response };
+      const receipts: ExpoPushTicket[] = await this.expo.sendPushNotificationsAsync([message]);
+      console.log('✅ Notification sent:', receipts);
+      return { success: true, response: receipts };
     } catch (error) {
-      console.error('Error sending push notification:', error);
-      return { success: false, error };
+      console.error('❌ Error sending Expo push notification:', error);
+      return { success: false, error: error.message };
     }
   }
 }

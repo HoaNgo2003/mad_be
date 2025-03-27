@@ -4,22 +4,18 @@ import { NotificationService } from './notification.service';
 import { Public } from 'src/common/decorator/public.decorator';
 import { SendNotificationDto } from './dtos/create-noti.dto';
 
-@ApiTags('Firebase Notifications') // Groups endpoints under this tag in Swagger
-@Controller('firebase')
+@ApiTags('Expo Notifications')
+@Controller('expo')
 export class NotificationController {
-  constructor(private readonly firebaseService: NotificationService) {}
+  constructor(private readonly notificationService: NotificationService) {}
 
   @Public()
   @Post('send-notification')
-  @ApiOperation({ summary: 'Send push notification' }) // Describes the endpoint
+  @ApiOperation({ summary: 'Send push notification using Expo' })
   @ApiResponse({ status: 200, description: 'Notification sent successfully' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
-  // @ApiBody({ type: SendNotificationDto }) // Defines the request body schema
   async sendNotification(@Body() data: SendNotificationDto) {
-    return this.firebaseService.sendPushNotification(
-      data.token,
-      data.title,
-      data.body,
-    );
+    console.log('📡 Sending Expo push notification to:', data.token);
+    return this.notificationService.sendPushNotification(data.token, data.title, data.body);
   }
 }
