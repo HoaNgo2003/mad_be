@@ -20,7 +20,6 @@ import {
 } from '@nestjs/swagger';
 import { PlantService } from './plant.service';
 import { CreatePlantDto, NameQuery, QueryName } from './dtos/create-plants.dto';
-import { CreateBulkPlantDto } from './dtos/create-bulk-plants.dto';
 import { Public } from 'src/common/decorator/public.decorator';
 import { Plant } from './entities/plant.entity';
 import { Swagger } from '@dataui/crud/lib/crud';

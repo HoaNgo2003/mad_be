@@ -15,7 +15,7 @@ export class NotificationService {
   async sendPushNotification(token: string, title: string, body: string) {
     if (!Expo.isExpoPushToken(token)) {
       console.error('❌ Invalid Expo push token:', token);
-      return { success: false, error: 'Invalid Expo push token' };
+      return;
     }
 
     this.token = token; // Lưu token

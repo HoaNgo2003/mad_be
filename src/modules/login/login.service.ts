@@ -69,6 +69,14 @@ export class LoginService {
     }
     delete user.password;
 
+    const updateUserData = await this.userService.updateOne(
+      {
+        filter: [{ field: 'id', operator: 'eq', value: user.id }],
+      },
+      {
+        token_device: dto.token_device,
+      },
+    );
     const accessToken = this.createAccessToken(user);
     const refreshToken = this.generateRefreshToken(user.email);
     const refreshTokenExpiresIn = parseInt(
@@ -76,7 +84,7 @@ export class LoginService {
       10,
     );
     const data: Partial<UserRefreshToken> = {
-      user,
+      user: updateUserData,
       token: refreshToken,
       expired_at: new Date(
         Date.now() + refreshTokenExpiresIn * 1000 * 60 * 60 * 24,
@@ -90,7 +98,7 @@ export class LoginService {
       Logger.error(e);
       throw new BadRequestException(ErrorMessage.User.failedCreateRefreshToken);
     }
-    return { user, accessToken, refreshToken };
+    return { user: updateUserData, accessToken, refreshToken };
   }
 
   async refreshToken(refreshToken: string) {
@@ -154,6 +162,20 @@ export class LoginService {
       throw new BadRequestException(ErrorMessage.User.refershTokenInvalid);
     }
     userRefreshToken.is_used = true;
+    await this.userService.updateOne(
+      {
+        filter: [
+          {
+            field: 'id',
+            operator: 'eq',
+            value: id,
+          },
+        ],
+      },
+      {
+        token_device: null,
+      },
+    );
     userRefreshToken.save();
     return true;
   }

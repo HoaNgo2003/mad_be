@@ -14,7 +14,7 @@ export class PostsComment extends BaseMySqlEntity {
 
   @ManyToOne(() => Posts, (post) => post.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
-  post: Posts;
+  posts: Posts;
 
   @ManyToOne(() => PostsComment, (comment) => comment.replies, {
     onDelete: 'CASCADE',

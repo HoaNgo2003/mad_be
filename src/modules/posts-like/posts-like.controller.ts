@@ -1,28 +1,24 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { BadRequestException, Controller, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { PostsLikeService } from './posts-like.service';
 import { EReact } from 'src/common/types/data-type';
-import { ParamIdPostsDto, ParamIdPostsLikeDto } from './dtos/paramId.dto';
+import { ParamIdPostsDto } from './dtos/paramId.dto';
 import { PostsService } from '../posts/posts.service';
 import { ErrorMessage } from 'src/common/error-message';
+import { NotificationService } from '../notification/notification.service';
 
-@ApiTags('User')
+@ApiTags('Posts-Like')
 @Controller({
   version: '1',
-  path: 'user',
+  path: 'post-like',
 })
-export class UserController {
+export class PostsLikeController {
   constructor(
     private readonly repo: PostsLikeService,
     private readonly postsService: PostsService,
+    private readonly notiService: NotificationService,
   ) {}
 
   @ApiBearerAuth()
@@ -44,6 +40,12 @@ export class UserController {
         type: EReact.like,
         posts,
       });
+
+      await this.notiService.sendPushNotification(
+        posts.user.token_device,
+        `new notification`,
+        '${user.username} just liked your post!!!',
+      );
       return {
         message: 'You had liked this post!',
       };
@@ -74,79 +76,16 @@ export class UserController {
         type: EReact.dislike,
         posts,
       });
+      await this.notiService.sendPushNotification(
+        posts.user.token_device,
+        `new notification`,
+        '${user.username} just disliked your post!!!',
+      );
       return {
         message: 'You had disliked this post!',
       };
     } catch (error) {
       throw new BadRequestException(ErrorMessage.Post.cannotLikeThisPost);
-    }
-  }
-
-  @ApiBearerAuth()
-  @Get('dislike/:id')
-  @ApiOperation({ summary: 'Like post' })
-  async countDislikePosts(@Param() param: ParamIdPostsLikeDto) {
-    try {
-      const result = await this.repo.getMany({
-        filter: [
-          {
-            field: 'id',
-            operator: 'eq',
-            value: param.id,
-          },
-          {
-            field: 'type',
-            operator: 'eq',
-            value: EReact.dislike,
-          },
-        ],
-      });
-
-      if (Array.isArray(result)) {
-        return {
-          count: result.length,
-        };
-      } else {
-        return {
-          count: result.data.length,
-        };
-      }
-    } catch (error) {
-      throw new BadRequestException(error);
-    }
-  }
-
-  @ApiBearerAuth()
-  @Get('like/:id')
-  @ApiOperation({ summary: 'Like post' })
-  async countLikePosts(@Param() param: ParamIdPostsLikeDto) {
-    try {
-      const result = await this.repo.getMany({
-        filter: [
-          {
-            field: 'id',
-            operator: 'eq',
-            value: param.id,
-          },
-          {
-            field: 'type',
-            operator: 'eq',
-            value: EReact.like,
-          },
-        ],
-      });
-
-      if (Array.isArray(result)) {
-        return {
-          count: result.length,
-        };
-      } else {
-        return {
-          count: result.data.length,
-        };
-      }
-    } catch (error) {
-      throw new BadRequestException(error);
     }
   }
 }

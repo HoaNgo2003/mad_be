@@ -3,6 +3,8 @@ import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
 import { PlantSearchHistory } from 'src/modules/plant-search-history/entities/plant-search-history.entity';
 import { PlantWishList } from 'src/modules/plant-wishlist/entities/plant-wishlist.entity';
 import { PostsComment } from 'src/modules/posts-comment/entities/posts-comment.entity';
+import { Posts } from 'src/modules/posts/entities/posts.entity';
+import { UserFollow } from 'src/modules/user-follow/entities/user-follow.entity';
 import { UserRefreshToken } from 'src/modules/user-refresh-token/entities/user-refresh-token.entity';
 import { UserVerifyAccount } from 'src/modules/user-verify-account/entities/user-verify-account.entity';
 import { Entity, Column, OneToMany } from 'typeorm';
@@ -50,4 +52,13 @@ export class User extends BaseMySqlEntity {
 
   @OneToMany(() => PostsComment, (comment) => comment.user)
   comments: PostsComment[];
+
+  @OneToMany(() => UserFollow, (follower) => follower.follower)
+  following: UserFollow[];
+
+  @OneToMany(() => UserFollow, (follower) => follower.following)
+  followers: UserFollow[];
+
+  @OneToMany(() => Posts, (posts) => posts.user)
+  posts: Posts[];
 }

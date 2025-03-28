@@ -2,8 +2,17 @@ import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
 import { PostsComment } from 'src/modules/posts-comment/entities/posts-comment.entity';
 import { PostsLike } from 'src/modules/posts-like/entities/posts-like.entity';
 import { PostsShare } from 'src/modules/posts-share/entities/posts-share.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 
-import { Entity, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  OneToMany,
+  ManyToMany,
+  JoinColumn,
+  JoinTable,
+  ManyToOne,
+} from 'typeorm';
 @Entity()
 export class Posts extends BaseMySqlEntity {
   @Column()
@@ -27,9 +36,15 @@ export class Posts extends BaseMySqlEntity {
   })
   posts_share: PostsShare[];
 
-  @OneToMany(() => PostsLike, (postsLike) => postsLike.posts, {
+  @OneToMany(() => PostsComment, (postsComment) => postsComment.posts, {
     cascade: true,
     eager: true,
   })
   comments: PostsComment[];
+
+  @ManyToOne(() => User, (user) => user.posts, {
+    cascade: true,
+  })
+  @JoinColumn({ name: 'post_user' })
+  user: User;
 }

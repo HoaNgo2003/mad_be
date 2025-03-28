@@ -21,9 +21,12 @@ export class UploadService {
     if (!files || files.length === 0) {
       throw new Error('No files provided');
     }
-    const fileUrls = files.map(
-      (file) => `${this.BASE_URL}/uploads/${file.filename}`,
-    );
+
+    const fileUrls = files.map((file) => {
+      console.log('Uploaded File:', file); // Debugging output
+      return `${this.BASE_URL}/uploads/${file.filename}`;
+    });
+
     return { urls: fileUrls };
   }
 }

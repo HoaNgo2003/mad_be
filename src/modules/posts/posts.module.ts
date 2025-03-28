@@ -1,12 +1,24 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Posts } from './entities/posts.entity';
 import { PostsService } from './posts.service';
-const validateConstraint = [];
+import { UserFollowModule } from '../user-follow/user.follow.module';
+import { IsPostExistContraints } from 'src/common/validators/post.validate';
+import { UploadModule } from '../upload/upload.module';
+import { PostsController } from './posts.controller';
+import { PostsLikeModule } from '../posts-like/posts-like.module';
+import { NotificationModule } from '../notification/notification.module';
+const validateConstraint = [IsPostExistContraints];
 @Module({
-  imports: [TypeOrmModule.forFeature([Posts])],
+  imports: [
+    TypeOrmModule.forFeature([Posts]),
+    forwardRef(() => UserFollowModule),
+    forwardRef(() => UploadModule),
+    forwardRef(() => PostsLikeModule),
+    NotificationModule,
+  ],
   exports: [PostsService],
-  controllers: [],
+  controllers: [PostsController],
   providers: [PostsService, ...validateConstraint],
 })
 export class PostsModule {}
