@@ -2,6 +2,7 @@ import { Controller, Post, Put, Get, Delete, Body, Param, Query, Patch } from '@
 import { SchedulesService } from './schedules.service';
 import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { CreateScheduleRuleDto } from './dtos/schedule-rule.dto';
 
 @Controller('schedules')
 export class SchedulesController {
@@ -10,7 +11,7 @@ export class SchedulesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create schedule rule' })
   @Post('/rules')
-  async createRule(@Body() data: any) {
+  async createRule(@Body() data: CreateScheduleRuleDto) {
     return this.schedulesService.createRule(data);
   }
 

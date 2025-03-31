@@ -121,34 +121,36 @@ export class SchedulesService {
     if (!rule) {
       throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
     }
-
-    let today = new Date();
+  
     const tasksToInsert = [];
-
-    if (rule.repeat_type === 'daily') {
-      for (let i = 0; i < 3; i++) {
-        let nextDate = new Date(today);
-        nextDate.setDate(today.getDate() + i);
-        this.setTimeOfDay(nextDate, rule.time_of_day);
-
-        tasksToInsert.push(this.createTask(rule, nextDate));
-      }
-    } else if (rule.repeat_type === 'weekly') {
-      const repeatDays = rule.repeat_days.split(',').map(day => day.trim());
-
-      for (let day of repeatDays) {
-        let nextDate = this.getNextDateForWeekday(today, day);
-
-        for (let i = 0; i < 3; i++) {
-          let taskDate = new Date(nextDate);
-          taskDate.setDate(nextDate.getDate() + i * 7);
-          this.setTimeOfDay(taskDate, rule.time_of_day);
-
-          tasksToInsert.push(this.createTask(rule, taskDate));
-        }
+    const now = new Date();
+  
+    for (let i = 0; i < 3; i++) {
+      const nextDate = new Date();
+      nextDate.setDate(now.getDate() + i * rule.repeat_interval);
+  
+      const [hours, minutes] = rule.time_of_day.split(':').map(Number);
+      nextDate.setHours(hours, minutes, 0, 0);
+  
+      const exists = await this.scheduleTaskRepo.findOne({
+        where: {
+          rule: { id: rule.id },
+          scheduled_at: nextDate,
+        },
+      });
+  
+      if (!exists) {
+        tasksToInsert.push({
+          rule: rule,
+          plant_id: rule.plant_id,
+          task_name: rule.task_name,
+          scheduled_at: nextDate,
+          status: 'pending',
+          notes: rule.notes,
+        });
       }
     }
-
+  
     return this.scheduleTaskRepo.save(tasksToInsert);
   }
 
@@ -168,23 +170,5 @@ export class SchedulesService {
   private getDayIndex(day: string): number {
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return daysOfWeek.indexOf(day);
-  }
-
-  // Tìm ngày tiếp theo của một thứ cụ thể
-  private getNextDateForWeekday(today: Date, targetDay: string): Date {
-    let todayIndex = today.getDay();
-    let targetIndex = this.getDayIndex(targetDay);
-    let daysUntilNext = (targetIndex - todayIndex + 7) % 7;
-    if (daysUntilNext === 0) daysUntilNext = 7; // Nếu hôm nay đúng target thì lấy tuần sau
-
-    let nextDate = new Date(today);
-    nextDate.setDate(today.getDate() + daysUntilNext);
-    return nextDate;
-  }
-
-  // Đặt giờ theo rule
-  private setTimeOfDay(date: Date, time: string) {
-    let [hours, minutes] = time.split(':').map(Number);
-    date.setHours(hours, minutes, 0, 0);
   }
 }
