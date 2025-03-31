@@ -13,11 +13,8 @@ export class ScheduleRule extends BaseMySqlEntity{
   @Column()
   task_name: string;
 
-  @Column({ type: 'enum', enum: ['once', 'daily', 'weekly'], default:'once' })
-  repeat_type: 'once'|'daily' | 'weekly';
-
-  @Column({ type: 'varchar', nullable: true })
-  repeat_days: string | null; // Lưu thứ dưới dạng "Monday,Wednesday"
+  @Column({ type: 'int' }) // Bao nhiêu ngày một lần
+  repeat_interval: number;
 
   @Column({ type: 'time' })
   time_of_day: string;
