@@ -41,6 +41,8 @@ import { PostsModule } from './modules/posts/posts.module';
 import { UserFollow } from './modules/user-follow/entities/user-follow.entity';
 import { UserFollowModule } from './modules/user-follow/user.follow.module';
 import { Notification } from './modules/notification/entities/notification.entity';
+import { UserPlants } from './modules/plant-user/entities/plant-user.entity';
+import { PlantUserModule } from './modules/plant-user/plant-user.module';
 
 @Module({
   imports: [
@@ -50,7 +52,7 @@ import { Notification } from './modules/notification/entities/notification.entit
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3307,
+      port: 3306,
       username: `${process.env.DB_USERNAME}`,
       password: `${process.env.DB_PASSWORD}`,
       database: `${process.env.DB_NAME}`,
@@ -71,7 +73,9 @@ import { Notification } from './modules/notification/entities/notification.entit
         PostsLike,
         PostsShare,
         UserFollow,
+
         Notification,
+        UserPlants,
       ],
       synchronize: true,
       subscribers: [UserSubscriber],
@@ -95,6 +99,7 @@ import { Notification } from './modules/notification/entities/notification.entit
     PostsCommentModule,
     PostsModule,
     UserFollowModule,
+    PlantUserModule,
   ],
   controllers: [AppController],
   providers: [
