@@ -1,6 +1,7 @@
 import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
 import { PlantBenefit } from 'src/modules/plant-benefit/entities/plant-benefit.entity';
 import { PlantCareProcess } from 'src/modules/plant-care-process/entities/plant-care-process.entity';
+import { PlantSearchHistory } from 'src/modules/plant-search-history/entities/plant-search-history.entity';
 import { PlantWishList } from 'src/modules/plant-wishlist/entities/plant-wishlist.entity';
 import { Entity, Column, OneToMany, OneToOne } from 'typeorm';
 @Entity()
@@ -26,4 +27,9 @@ export class Plant extends BaseMySqlEntity {
 
   @OneToOne(() => PlantWishList, (wishlist) => wishlist.plant)
   plant_wishlist: PlantWishList;
+
+  @OneToMany(() => PlantSearchHistory, (searchHistory) => searchHistory.plant, {
+    cascade: true,
+  })
+  plant_search_histories: PlantSearchHistory[];
 }
