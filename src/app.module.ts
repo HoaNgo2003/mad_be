@@ -40,6 +40,8 @@ import { PostsCommentModule } from './modules/posts-comment/posts-comment.module
 import { PostsModule } from './modules/posts/posts.module';
 import { UserFollow } from './modules/user-follow/entities/user-follow.entity';
 import { UserFollowModule } from './modules/user-follow/user.follow.module';
+import { UserPlants } from './modules/plant-user/entities/plant-user.entity';
+import { PlantUserModule } from './modules/plant-user/plant-user.module';
 
 @Module({
   imports: [
@@ -70,6 +72,7 @@ import { UserFollowModule } from './modules/user-follow/user.follow.module';
         PostsLike,
         PostsShare,
         UserFollow,
+        UserPlants
       ],
       synchronize: true,
       subscribers: [UserSubscriber],
@@ -93,6 +96,7 @@ import { UserFollowModule } from './modules/user-follow/user.follow.module';
     PostsCommentModule,
     PostsModule,
     UserFollowModule,
+    PlantUserModule
   ],
   controllers: [AppController],
   providers: [
