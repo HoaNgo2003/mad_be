@@ -1,16 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber, Min } from 'class-validator';
 
 export class CreateScheduleRuleDto {
-  @ApiProperty({ example: 1, description: 'ID của người dùng' })
-  @IsNumber()
+  @ApiProperty({
+    example: '1',
+    description: 'ID của bản ghi user-plant (liên kết user và plant)',
+  })
+  @IsString()
   @IsNotEmpty()
-  user_id: number;
-
-  @ApiProperty({ example: 2, description: 'ID của cây trồng' })
-  @IsNumber()
-  @IsNotEmpty()
-  plant_id: number;
+  user_plant_id: string;
 
   @ApiProperty({ example: 'Tưới nước', description: 'Tên công việc' })
   @IsString()

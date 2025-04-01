@@ -1,14 +1,12 @@
 import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
+import { UserPlants } from 'src/modules/plant-user/entities/plant-user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 
 @Entity('schedule_rules')
 export class ScheduleRule extends BaseMySqlEntity{
 
-  @Column()
-  user_id: number;
-
-  @Column()
-  plant_id: number;
+  @ManyToOne(() => UserPlants, { onDelete: 'CASCADE' })
+  user_plant: UserPlants;
 
   @Column()
   task_name: string;

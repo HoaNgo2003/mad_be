@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, IsNull, Repository } from 'typeorm';
 import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ScheduleTask } from './entities/schedule-task.entity';
+import { UserPlants } from '../plant-user/entities/plant-user.entity';
+import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
 
 @Injectable()
 export class SchedulesService {
@@ -12,41 +14,54 @@ export class SchedulesService {
 
     @InjectRepository(ScheduleTask)
     private scheduleTaskRepo: Repository<ScheduleTask>,
-  ) { }
 
-  // Lấy danh sách lịch trình chăm sóc cây
-  async getTasks() {
-    return this.scheduleTaskRepo.find({
-      order: { scheduled_at: 'ASC' }, // Sắp xếp theo thời gian sắp tới
-      relations: ['rule'], // Lấy cả thông tin rule liên quan
+    @InjectRepository(UserPlants)
+    private userPlantRepo: Repository<UserPlants>,
+  ) {}
+
+  // ✅ Tạo Rule mới
+  async createRule(data: CreateScheduleRuleDto) {
+    const userPlant = await this.userPlantRepo.findOne({
+      where: { id: data.user_plant_id },
     });
-  }
 
-  // Tạo Rule mới
-  async createRule(data: Partial<ScheduleRule>) {
-    const rule = this.scheduleRuleRepo.create(data);
+    if (!userPlant) {
+      throw new NotFoundException(`Không tìm thấy userPlant với ID ${data.user_plant_id}`);
+    }
+
+    const rule = this.scheduleRuleRepo.create({
+      user_plant: userPlant,
+      task_name: data.task_name,
+      repeat_interval: data.repeat_interval,
+      time_of_day: data.time_of_day,
+      notes: data.notes,
+    });
+
     return this.scheduleRuleRepo.save(rule);
   }
 
-  // Cập nhật rule
+  // ✅ Cập nhật rule
   async updateRule(ruleId: string, data: Partial<ScheduleRule>) {
-    const rule = await this.scheduleRuleRepo.findOne({ where: { id: ruleId } });
+    const rule = await this.scheduleRuleRepo.findOne({
+      where: { id: ruleId },
+      relations: ['user_plant'],
+    });
+
     if (!rule) {
       throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
     }
 
-    await this.scheduleRuleRepo.update(ruleId, data);
-    return { message: 'Cập nhật thành công' };
+    const updatedRule = this.scheduleRuleRepo.merge(rule, data);
+    return this.scheduleRuleRepo.save(updatedRule);
   }
 
+  // ✅ Xóa rule (mềm)
   async deleteRuleById(ruleId: string) {
     const rule = await this.scheduleRuleRepo.findOne({ where: { id: ruleId } });
-
     if (!rule) {
       throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
     }
 
-    // Xóa mềm các task liên quan có status = 'pending'
     const pendingTasks = await this.scheduleTaskRepo.find({
       where: {
         rule: { id: ruleId },
@@ -55,120 +70,112 @@ export class SchedulesService {
     });
 
     for (const task of pendingTasks) {
-      task.deletedAt = new Date(); // nếu có cột deletedBy trong ScheduleTask
+      task.deletedAt = new Date();
       await this.scheduleTaskRepo.save(task);
     }
 
-    // Xóa mềm (cập nhật deletedAt)
     await this.scheduleRuleRepo.softDelete(ruleId);
-
     return { message: `Đã xóa rule ID ${ruleId} thành công.` };
   }
 
-  // Lấy schedule theo userId
-  async getRulesByUserId(userId: number) {
-    return this.scheduleRuleRepo.find({
-      where: { user_id: userId },
-      order: { createdAt: 'DESC' } // Sắp xếp mới nhất lên trên
+  // ✅ Lấy danh sách task toàn bộ
+  async getTasks() {
+    return this.scheduleTaskRepo.find({
+      where: { deletedAt: IsNull() },
+      order: { scheduled_at: 'ASC' },
+      relations: ['rule', 'rule.user_plant', 'rule.user_plant.plant'],
     });
   }
 
-  // Lấy danh sách các task theo userId và date
+  // ✅ Lấy task theo user và ngày
   async getTasksByUserAndDate(userId: number, date: string) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
-  
+
     const end = new Date(date);
     end.setHours(23, 59, 59, 999);
-  
-    return this.scheduleTaskRepo.find({
-      where: {
-        scheduled_at: Between(start, end),
-        rule: {
-          user_id: userId,
-        },
-        deletedAt: IsNull(), // chỉ lấy task chưa bị xóa mềm
-      },
-      relations: [],
-      order: {
-        status : 'ASC',
-        scheduled_at: 'ASC',
-      },
-    });
+
+    return this.scheduleTaskRepo
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.rule', 'rule')
+      .leftJoinAndSelect('rule.user_plant', 'user_plant')
+      .leftJoinAndSelect('user_plant.user', 'user')
+      .leftJoinAndSelect('user_plant.plant', 'plant')
+      .where('task.scheduled_at BETWEEN :start AND :end', { start, end })
+      .andWhere('task.deletedAt IS NULL')
+      .andWhere('user.id = :userId', { userId })
+      .orderBy('task.status', 'ASC')
+      .addOrderBy('task.scheduled_at', 'ASC')
+      .select([
+        'task.id',
+        'task.task_name',
+        'task.status',
+        'task.scheduled_at',
+        'task.notes',
+        'task.createdAt',
+        'task.updatedAt',
+      ])
+      .getMany();
   }
 
-  // Hoàn thành task theo id
+  // ✅ Đánh dấu hoàn thành task
   async markTaskAsDone(taskId: string) {
     const task = await this.scheduleTaskRepo.findOne({ where: { id: taskId } });
-  
+
     if (!task) {
       throw new NotFoundException(`Không tìm thấy task`);
     }
-  
+
     if (task.status === 'done') {
       return { message: `Task đã hoàn thành trước đó.` };
     }
-  
+
     task.status = 'done';
     await this.scheduleTaskRepo.save(task);
-  
+
     return { message: `Hoàn thành` };
   }
 
-  // Sinh task từ 1 rule dựa vào ID
+  // ✅ Sinh 3 task từ rule
   async generateTasksForRule(ruleId: string) {
-    const rule = await this.scheduleRuleRepo.findOne({ where: { id: ruleId } });
+    const rule = await this.scheduleRuleRepo.findOne({
+      where: { id: ruleId },
+      relations: ['user_plant', 'user_plant.plant'],
+    });
+
     if (!rule) {
       throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
     }
-  
+
     const tasksToInsert = [];
     const now = new Date();
-  
+
     for (let i = 0; i < 3; i++) {
       const nextDate = new Date();
       nextDate.setDate(now.getDate() + i * rule.repeat_interval);
-  
+
       const [hours, minutes] = rule.time_of_day.split(':').map(Number);
       nextDate.setHours(hours, minutes, 0, 0);
-  
+
       const exists = await this.scheduleTaskRepo.findOne({
         where: {
           rule: { id: rule.id },
           scheduled_at: nextDate,
         },
       });
-  
+
       if (!exists) {
         tasksToInsert.push({
-          rule: rule,
-          plant_id: rule.plant_id,
+          rule,
           task_name: rule.task_name,
           scheduled_at: nextDate,
           status: 'pending',
           notes: rule.notes,
+          plant_id: rule.user_plant.plant?.id ?? null,
         });
       }
     }
-  
+
     return this.scheduleTaskRepo.save(tasksToInsert);
-  }
-
-  // Tạo object task để insert vào DB
-  private createTask(rule: ScheduleRule, scheduledAt: Date): Partial<ScheduleTask> {
-    return {
-      rule: rule,
-      plant_id: rule.plant_id,
-      task_name: rule.task_name,
-      scheduled_at: scheduledAt,
-      status: 'pending',
-      notes: rule.notes,
-    };
-  }
-
-  // Chuyển từ tên ngày thành index của tuần
-  private getDayIndex(day: string): number {
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return daysOfWeek.indexOf(day);
   }
 }
