@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
+import { Notification } from 'src/modules/notification/entities/notification.entity';
 import { PlantSearchHistory } from 'src/modules/plant-search-history/entities/plant-search-history.entity';
 import { PlantWishList } from 'src/modules/plant-wishlist/entities/plant-wishlist.entity';
 import { PostsComment } from 'src/modules/posts-comment/entities/posts-comment.entity';
@@ -50,7 +51,9 @@ export class User extends BaseMySqlEntity {
   @OneToMany(() => PlantSearchHistory, (history) => history.user)
   plant_search_histories: PlantSearchHistory[];
 
-  @OneToMany(() => PostsComment, (comment) => comment.user)
+  @OneToMany(() => PostsComment, (comment) => comment.user, {
+    eager: true,
+  })
   comments: PostsComment[];
 
   @OneToMany(() => UserFollow, (follower) => follower.follower)
@@ -61,4 +64,7 @@ export class User extends BaseMySqlEntity {
 
   @OneToMany(() => Posts, (posts) => posts.user)
   posts: Posts[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
 }

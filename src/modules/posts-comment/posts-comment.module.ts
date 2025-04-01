@@ -5,6 +5,7 @@ import { PostsCommentService } from './posts-comment.service';
 import { UsersModule } from '../user/user.module';
 import { NotificationModule } from '../notification/notification.module';
 import { PostsModule } from '../posts/posts.module';
+import { PostsCommentController } from './posts-comment.controller';
 const validateConstraint = [];
 @Module({
   imports: [
@@ -14,7 +15,7 @@ const validateConstraint = [];
     PostsModule,
   ],
   exports: [PostsCommentService],
-  controllers: [],
+  controllers: [PostsCommentController],
   providers: [PostsCommentService, ...validateConstraint],
 })
 export class PostsCommentModule {}

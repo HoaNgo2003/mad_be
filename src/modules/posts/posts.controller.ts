@@ -31,6 +31,7 @@ import { Public } from 'src/common/decorator/public.decorator';
 import { PostsLikeService } from '../posts-like/posts-like.service';
 import { NotificationService } from '../notification/notification.service';
 import { UpdatePostDto } from './dtos/update-post.dto';
+import { EReact } from 'src/common/types/data-type';
 
 @ApiTags('Posts')
 @Controller({
@@ -81,6 +82,7 @@ export class PostsController {
         user.follower.token_device,
         `${user.follower.username} vừa đăng bài viết mới!!`,
         `${data.title}\n${data.description.slice(10)}`,
+        user.follower,
       );
     });
     return data;
@@ -108,6 +110,13 @@ export class PostsController {
     return this.repo.getListPostByUser(user);
   }
 
+  @ApiBearerAuth()
+  @Get('')
+  @ApiOperation({ summary: 'get list posts' })
+  async getAll(@CurrentUser() user: User) {
+    return this.repo.getListPost(user);
+  }
+
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'get one post' })
@@ -116,6 +125,9 @@ export class PostsController {
     parsed.join = [
       {
         field: 'user',
+      },
+      {
+        field: 'comments',
       },
     ];
     parsed.filter = [
@@ -127,6 +139,12 @@ export class PostsController {
     ];
 
     const post = await this.repo.getOne(parsed);
+    const is_like = post.posts_like.some(
+      (like) => like.user_id == post.user.id && like.type == EReact.like,
+    );
+    const is_dislike = post.posts_like.some(
+      (like) => like.user_id == post.user.id && like.type == EReact.dislike,
+    );
     const like = await this.postsLikeService.countPostLike(post.id);
     const dislike = await this.postsLikeService.countPostDislike(post.id);
     return {
@@ -134,6 +152,8 @@ export class PostsController {
       posts_like: like,
       posts_dislike: dislike,
       comments: post.comments.length,
+      is_like,
+      is_dislike,
     };
   }
 
@@ -184,16 +204,10 @@ export class PostsController {
         user.follower.token_device,
         `${user.follower.username} vừa cập nhật bài viết!!`,
         `${updatedPost.title}\n${updatedPost.description.slice(10)}`,
+        user.follower,
       );
     });
 
     return updatedPost;
-  }
-
-  @Public()
-  @Get('')
-  @ApiOperation({ summary: 'get list posts' })
-  async getAll() {
-    return this.repo.getListPost();
   }
 }

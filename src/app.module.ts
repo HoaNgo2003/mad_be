@@ -40,6 +40,7 @@ import { PostsCommentModule } from './modules/posts-comment/posts-comment.module
 import { PostsModule } from './modules/posts/posts.module';
 import { UserFollow } from './modules/user-follow/entities/user-follow.entity';
 import { UserFollowModule } from './modules/user-follow/user.follow.module';
+import { Notification } from './modules/notification/entities/notification.entity';
 
 @Module({
   imports: [
@@ -49,7 +50,7 @@ import { UserFollowModule } from './modules/user-follow/user.follow.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3306,
+      port: 3307,
       username: `${process.env.DB_USERNAME}`,
       password: `${process.env.DB_PASSWORD}`,
       database: `${process.env.DB_NAME}`,
@@ -70,6 +71,7 @@ import { UserFollowModule } from './modules/user-follow/user.follow.module';
         PostsLike,
         PostsShare,
         UserFollow,
+        Notification,
       ],
       synchronize: true,
       subscribers: [UserSubscriber],

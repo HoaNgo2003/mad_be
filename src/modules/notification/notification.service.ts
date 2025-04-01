@@ -1,18 +1,32 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 import * as cron from 'node-cron';
+import { BaseMySqlService } from 'src/common/services/base-mysql.service';
+import { Repository } from 'typeorm';
+import { Notification } from './entities/notification.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
-export class NotificationService {
+export class NotificationService extends BaseMySqlService<Notification> {
   private readonly expo: Expo;
   private token: string | null = null;
   private isScheduled = false; // Biến để kiểm tra đã lên lịch hay chưa
 
-  constructor() {
+  constructor(
+    @InjectRepository(Notification)
+    private readonly repo: Repository<Notification>,
+  ) {
+    super(repo);
     this.expo = new Expo();
   }
 
-  async sendPushNotification(token: string, title: string, body: string) {
+  async sendPushNotification(
+    token: string,
+    title: string,
+    body: string,
+    user: User,
+  ) {
     if (!Expo.isExpoPushToken(token)) {
       console.error('❌ Invalid Expo push token:', token);
       return;
@@ -34,8 +48,13 @@ export class NotificationService {
       console.log('✅ Notification sent:', receipts);
 
       // 🔹 Sau khi gửi noti lần đầu -> Lên lịch gửi sau 5 phút
-      this.scheduleNotifications();
-
+      const notiDto = {
+        title,
+        body,
+        token,
+        user,
+      };
+      await this.createOne(notiDto);
       return { success: true, response: receipts };
     } catch (error) {
       console.error('❌ Error sending Expo push notification:', error);
@@ -65,6 +84,7 @@ export class NotificationService {
           this.token,
           '⏰ Reminder!',
           'This notification was scheduled 5 minutes ago!',
+          new User(),
         );
       }
     });

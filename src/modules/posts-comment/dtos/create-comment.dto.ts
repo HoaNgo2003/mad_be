@@ -20,3 +20,11 @@ export class CreatePostCommentDto {
   @IsDefined()
   post_id: string;
 }
+
+export class UpdatePostCommentDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @IsDefined()
+  content: string;
+}

@@ -35,6 +35,15 @@ export class PostsLikeController {
           },
         ],
       });
+
+      const isLike = posts.posts_like.some(
+        (like) => like.user_id == user.id && like.type == EReact.like,
+      );
+      if (isLike) {
+        return {
+          message: 'You had liked this post!',
+        };
+      }
       await this.repo.createOne({
         user_id: user.id,
         type: EReact.like,
@@ -45,6 +54,7 @@ export class PostsLikeController {
         posts.user.token_device,
         `new notification`,
         '${user.username} just liked your post!!!',
+        posts.user,
       );
       return {
         message: 'You had liked this post!',
@@ -71,6 +81,15 @@ export class PostsLikeController {
           },
         ],
       });
+      const isDislike = posts.posts_like.some((like) => {
+        return like.user_id == user.id && like.type == EReact.dislike;
+      });
+      if (isDislike) {
+        return {
+          message: 'You had disliked this post!',
+        };
+      }
+
       await this.repo.createOne({
         user_id: user.id,
         type: EReact.dislike,
@@ -80,6 +99,7 @@ export class PostsLikeController {
         posts.user.token_device,
         `new notification`,
         '${user.username} just disliked your post!!!',
+        posts.user,
       );
       return {
         message: 'You had disliked this post!',

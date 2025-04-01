@@ -4,15 +4,7 @@ import { PostsLike } from 'src/modules/posts-like/entities/posts-like.entity';
 import { PostsShare } from 'src/modules/posts-share/entities/posts-share.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 
-import {
-  Entity,
-  Column,
-  OneToMany,
-  ManyToMany,
-  JoinColumn,
-  JoinTable,
-  ManyToOne,
-} from 'typeorm';
+import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from 'typeorm';
 @Entity()
 export class Posts extends BaseMySqlEntity {
   @Column()
