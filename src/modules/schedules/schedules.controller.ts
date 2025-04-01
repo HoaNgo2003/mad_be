@@ -4,7 +4,10 @@ import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CreateScheduleRuleDto } from './dtos/schedule-rule.dto';
 
-@Controller('schedules')
+@Controller({
+  version: '1',
+  path: 'schedules',
+})
 export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) { }
 
