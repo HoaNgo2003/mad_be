@@ -28,4 +28,7 @@ export class PostsComment extends BaseMySqlEntity {
 
   @OneToMany(() => PostsComment, (comment) => comment.parent)
   replies: PostsComment[];
+
+  @Column({ default: 0 })
+  depth: number;
 }

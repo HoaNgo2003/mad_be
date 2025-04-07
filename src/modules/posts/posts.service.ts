@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { BaseMySqlService } from 'src/common/services/base-mysql.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,6 +8,7 @@ import { PostsLikeService } from '../posts-like/posts-like.service';
 import { EReact } from 'src/common/types/data-type';
 import { filter } from 'rxjs';
 import { PostsShareService } from '../posts-share/posts-share.service';
+import { PostsCommentService } from '../posts-comment/posts-comment.service';
 
 @Injectable()
 export class PostsService extends BaseMySqlService<Posts> {
@@ -16,6 +17,7 @@ export class PostsService extends BaseMySqlService<Posts> {
     private readonly repo: Repository<Posts>,
     private readonly postLikeService: PostsLikeService,
     private readonly postShareService: PostsShareService,
+    private readonly postCommentService: PostsCommentService,
   ) {
     super(repo);
   }
@@ -53,43 +55,41 @@ export class PostsService extends BaseMySqlService<Posts> {
       .leftJoinAndSelect('replies.user', 'replyUser')
       .getMany();
 
-    const resPostsData = postsData.map(async (post) => {
-      const isLike = post.posts_like.some(
-        (like) => like.user_id == user.id && like.type == EReact.like,
-      );
+    const enrichedPosts = await Promise.all(
+      postsData.map(async (post) => {
+        const isLike = post.posts_like.some(
+          (like) => like.user_id === user.id && like.type === EReact.like,
+        );
+        const isDislike = post.posts_like.some(
+          (like) => like.user_id === user.id && like.type === EReact.dislike,
+        );
 
-      const isDislike = post.posts_like.some(
-        (like) => like.user_id == user.id && like.type == EReact.dislike,
-      );
-      const like = await this.postLikeService.countPostLike(post.id);
-      const dislike = await this.postLikeService.countPostDislike(post.id);
-      const share = await this.postShareService.countSharePost(post.id);
-      const commentsWithReplies = post.comments
-        .filter((comment) => comment.replies.length > 0)
-        .map((parentComment) => {
-          return {
-            ...parentComment,
-          };
-        });
-      const commentsWithoutReplies = post.comments.filter(
-        (comment) => comment.replies.length == 0,
-      );
-      return {
-        ...post,
-        is_like: isLike,
-        is_dislike: isDislike,
-        posts_like: like,
-        posts_dislike: dislike,
-        posts_share: share,
-        comments: [...commentsWithReplies, ...commentsWithoutReplies],
-        comments_count: post.comments.length,
-      };
-    });
+        const [like, dislike, share] = await Promise.all([
+          this.postLikeService.countPostLike(post.id),
+          this.postLikeService.countPostDislike(post.id),
+          this.postShareService.countSharePost(post.id),
+        ]);
 
-    const resolvedPostsData = await Promise.all(resPostsData);
-    return resolvedPostsData;
+        const commentData = await this.postCommentService.getCommentsByPostId(
+          post.id,
+        );
+        return {
+          ...post,
+          is_like: isLike,
+          is_dislike: isDislike,
+          posts_like: like,
+          posts_dislike: dislike,
+          posts_share: share,
+          comments: commentData,
+          comments_count: post.comments.length,
+        };
+      }),
+    );
+
+    return enrichedPosts;
   }
-  async getOnePost(id: string) {
+
+  async getOnePost(user: User, postId: string) {
     const post = await this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
@@ -98,8 +98,38 @@ export class PostsService extends BaseMySqlService<Posts> {
       .leftJoinAndSelect('comments.user', 'commentUser')
       .leftJoinAndSelect('comments.replies', 'replies')
       .leftJoinAndSelect('replies.user', 'replyUser')
-      .where('post.id = :id', { id })
+      .where('post.id = :postId', { postId })
       .getOne();
-    return post;
+
+    if (!post) {
+      throw new NotFoundException('Bài viết không tồn tại ');
+    }
+
+    const isLike = post.posts_like.some(
+      (like) => like.user_id === user.id && like.type === EReact.like,
+    );
+
+    const isDislike = post.posts_like.some(
+      (like) => like.user_id === user.id && like.type === EReact.dislike,
+    );
+
+    const [like, dislike, share] = await Promise.all([
+      this.postLikeService.countPostLike(post.id),
+      this.postLikeService.countPostDislike(post.id),
+      this.postShareService.countSharePost(post.id),
+    ]);
+
+    const comments = await this.postCommentService.getCommentsByPostId(post.id);
+
+    return {
+      ...post,
+      is_like: isLike,
+      is_dislike: isDislike,
+      posts_like: like,
+      posts_dislike: dislike,
+      posts_share: share,
+      comments,
+      comments_count: post.comments.length,
+    };
   }
 }

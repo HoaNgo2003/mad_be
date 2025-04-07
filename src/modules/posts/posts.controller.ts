@@ -119,41 +119,11 @@ export class PostsController {
     return this.repo.getListPost(user);
   }
 
-  @Public()
+  @ApiBearerAuth()
   @Get(':id')
   @ApiOperation({ summary: 'get one post' })
-  async getOne(@Param() param: PostsIdDto) {
-    const post = await this.repo.getOnePost(param.id);
-    const is_like = post.posts_like.some(
-      (like) => like.user_id == post.user.id && like.type == EReact.like,
-    );
-    const is_dislike = post.posts_like.some(
-      (like) => like.user_id == post.user.id && like.type == EReact.dislike,
-    );
-    const like = await this.postsLikeService.countPostLike(post.id);
-    const dislike = await this.postsLikeService.countPostDislike(post.id);
-    const share = await this.postsShareService.countSharePost(post.id);
-    console.log('post', post);
-    const commentsWithReplies = post.comments
-      .filter((comment) => comment.replies.length > 0)
-      .map((parentComment) => {
-        return {
-          ...parentComment,
-        };
-      });
-    const commentsWithoutReplies = post.comments.filter(
-      (comment) => comment.replies.length == 0,
-    );
-    return {
-      ...post,
-      posts_like: like,
-      posts_dislike: dislike,
-      posts_share: share,
-      comments: [...commentsWithReplies, ...commentsWithoutReplies],
-      comments_count: post.comments.length,
-      is_like,
-      is_dislike,
-    };
+  async getOne(@Param() param: PostsIdDto, @CurrentUser() user: User) {
+    return this.repo.getOnePost(user, param.id);
   }
 
   @ApiBearerAuth()

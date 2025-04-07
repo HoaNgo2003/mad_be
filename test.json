@@ -1,0 +1,127 @@
+{
+  "statusCode": 200,
+  "data": [
+    {
+      "id": 6,
+      "createdAt": "2025-04-07T16:50:52.435Z",
+      "updatedAt": "2025-04-07T16:50:52.435Z",
+      "deletedAt": null,
+      "title": "My New Post",
+      "description": "This is a description of my post",
+      "imageUrl": ["http://localhost:8080/uploads/1744044652410-623473072.png"],
+      "user": {
+        "id": 4,
+        "createdAt": "2025-03-28T16:26:08.539Z",
+        "updatedAt": "2025-03-31T07:50:13.000Z",
+        "deletedAt": null,
+        "username": "John",
+        "password": "$2b$10$HSYeWDf1X8vvupdkSS5r2OEIKU5LhaN4XxOA5R0oIgetYX22tipfu",
+        "email": "abc@example.com",
+        "token_device": "1dasdadsaff",
+        "full_name": null,
+        "gender": null,
+        "birth_day": null,
+        "profile_picture": "",
+        "status": true
+      },
+      "posts_like": 0,
+      "comments": [
+        {
+          "id": 30,
+          "content": "Bài viết rất ý nghĩa!",
+          "user": {
+            "id": 4,
+            "createdAt": "2025-03-28T16:26:08.539Z",
+            "updatedAt": "2025-03-31T07:50:13.000Z",
+            "deletedAt": null,
+            "username": "John",
+            "password": "$2b$10$HSYeWDf1X8vvupdkSS5r2OEIKU5LhaN4XxOA5R0oIgetYX22tipfu",
+            "email": "abc@example.com",
+            "token_device": "1dasdadsaff",
+            "full_name": null,
+            "gender": null,
+            "birth_day": null,
+            "profile_picture": "",
+            "status": true
+          },
+          "created_at": "2025-04-07T16:51:06.326Z",
+          "replies": [
+            {
+              "id": 31,
+              "content": "Bài viết rất ý nghĩa!",
+              "user": {
+                "id": 4,
+                "createdAt": "2025-03-28T16:26:08.539Z",
+                "updatedAt": "2025-03-31T07:50:13.000Z",
+                "deletedAt": null,
+                "username": "John",
+                "password": "$2b$10$HSYeWDf1X8vvupdkSS5r2OEIKU5LhaN4XxOA5R0oIgetYX22tipfu",
+                "email": "abc@example.com",
+                "token_device": "1dasdadsaff",
+                "full_name": null,
+                "gender": null,
+                "birth_day": null,
+                "profile_picture": "",
+                "status": true
+              },
+              "created_at": "2025-04-07T16:56:48.498Z",
+              "replies": [
+                {
+                  "id": 32,
+                  "content": "Bài viết rất ý nghĩa!",
+                  "user": {
+                    "id": 4,
+                    "createdAt": "2025-03-28T16:26:08.539Z",
+                    "updatedAt": "2025-03-31T07:50:13.000Z",
+                    "deletedAt": null,
+                    "username": "John",
+                    "password": "$2b$10$HSYeWDf1X8vvupdkSS5r2OEIKU5LhaN4XxOA5R0oIgetYX22tipfu",
+                    "email": "abc@example.com",
+                    "token_device": "1dasdadsaff",
+                    "full_name": null,
+                    "gender": null,
+                    "birth_day": null,
+                    "profile_picture": "",
+                    "status": true
+                  },
+                  "created_at": "2025-04-07T16:58:29.382Z",
+                  "replies": [],
+                  "parent_id": 31
+                }
+              ],
+              "parent_id": 30
+            }
+          ],
+          "parent_id": null
+        },
+        {
+          "id": 33,
+          "content": "Bài viết rất ý nghĩa!",
+          "user": {
+            "id": 4,
+            "createdAt": "2025-03-28T16:26:08.539Z",
+            "updatedAt": "2025-03-31T07:50:13.000Z",
+            "deletedAt": null,
+            "username": "John",
+            "password": "$2b$10$HSYeWDf1X8vvupdkSS5r2OEIKU5LhaN4XxOA5R0oIgetYX22tipfu",
+            "email": "abc@example.com",
+            "token_device": "1dasdadsaff",
+            "full_name": null,
+            "gender": null,
+            "birth_day": null,
+            "profile_picture": "",
+            "status": true
+          },
+          "created_at": "2025-04-07T16:59:44.523Z",
+          "replies": [],
+          "parent_id": null
+        }
+      ],
+      "is_like": false,
+      "is_dislike": false,
+      "posts_dislike": 0,
+      "posts_share": 0,
+      "comments_count": 4
+    }
+  ]
+}
