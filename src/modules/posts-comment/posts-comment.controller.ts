@@ -11,7 +11,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { PostsService } from '../posts/posts.service';
-import { ErrorMessage } from 'src/common/error-message';
 import { NotificationService } from '../notification/notification.service';
 import { PostsCommentService } from './posts-comment.service';
 import { UsersService } from '../user/user.service';
@@ -68,7 +67,7 @@ export class PostsCommentController {
           })
         : null,
     ]);
-
+    console.log('parentComment', parentComment);
     const comment = await this.repo.createOne({
       content: dto.content,
       posts,
@@ -81,6 +80,7 @@ export class PostsCommentController {
       `${user.username} just post new comment in your post`,
       posts.user,
     );
+    console.log('parentComment', parentComment);
     if (dto.replied_user_id) {
       await this.notiService.sendPushNotification(
         parentComment.user.token_device,

@@ -32,6 +32,7 @@ import { PostsLikeService } from '../posts-like/posts-like.service';
 import { NotificationService } from '../notification/notification.service';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { EReact } from 'src/common/types/data-type';
+import { PostsShareService } from '../posts-share/posts-share.service';
 
 @ApiTags('Posts')
 @Controller({
@@ -44,6 +45,7 @@ export class PostsController {
     private readonly userFollowService: UserFollowService,
     private readonly uploadService: UploadService,
     private readonly postsLikeService: PostsLikeService,
+    private readonly postsShareService: PostsShareService,
     private readonly notiService: NotificationService,
   ) {}
 
@@ -120,25 +122,8 @@ export class PostsController {
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'get one post' })
-  async getOne(@ParsedRequest() req: CrudRequest, @Param() param: PostsIdDto) {
-    const { parsed } = req;
-    parsed.join = [
-      {
-        field: 'user',
-      },
-      {
-        field: 'comments',
-      },
-    ];
-    parsed.filter = [
-      {
-        field: 'id',
-        operator: 'eq',
-        value: param.id,
-      },
-    ];
-
-    const post = await this.repo.getOne(parsed);
+  async getOne(@Param() param: PostsIdDto) {
+    const post = await this.repo.getOnePost(param.id);
     const is_like = post.posts_like.some(
       (like) => like.user_id == post.user.id && like.type == EReact.like,
     );
@@ -147,11 +132,25 @@ export class PostsController {
     );
     const like = await this.postsLikeService.countPostLike(post.id);
     const dislike = await this.postsLikeService.countPostDislike(post.id);
+    const share = await this.postsShareService.countSharePost(post.id);
+    console.log('post', post);
+    const commentsWithReplies = post.comments
+      .filter((comment) => comment.replies.length > 0)
+      .map((parentComment) => {
+        return {
+          ...parentComment,
+        };
+      });
+    const commentsWithoutReplies = post.comments.filter(
+      (comment) => comment.replies.length == 0,
+    );
     return {
       ...post,
       posts_like: like,
       posts_dislike: dislike,
-      comments: post.comments.length,
+      posts_share: share,
+      comments: [...commentsWithReplies, ...commentsWithoutReplies],
+      comments_count: post.comments.length,
       is_like,
       is_dislike,
     };
