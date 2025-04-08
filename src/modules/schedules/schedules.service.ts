@@ -48,7 +48,7 @@ export class SchedulesService {
   async getRuleById(id: string) {
     const rule = await this.scheduleRuleRepo.findOne({
       where: { id },
-      relations: [], // bỏ qua các entity quan hệ nào
+      relations: [], // bỏ qua các entity quan hệ
     });
 
     if (!rule) {
@@ -57,6 +57,22 @@ export class SchedulesService {
 
     return rule;
   }
+
+  // Lấy list rule theo userPlantId
+  async getRulesByUserPlantId(userPlantId: string) {
+    return this.scheduleRuleRepo.find({
+      where: {
+        user_plant: {
+          id: userPlantId,
+        },
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      relations: [], // bỏ qua các entity quan hệ
+    });
+  }
+  
 
   // ✅ Cập nhật rule
   async updateRule(ruleId: string, data: Partial<ScheduleRule>) {
