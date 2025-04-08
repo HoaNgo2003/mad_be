@@ -36,8 +36,26 @@ export class SchedulesService {
       time_of_day: data.time_of_day,
       notes: data.notes,
     });
+    const savedRule = await this.scheduleRuleRepo.save(rule);
 
-    return this.scheduleRuleRepo.save(rule);
+    // Gọi hàm sinh task từ rule vừa tạo
+    await this.generateTasksForRule(savedRule.id);
+
+    return savedRule;
+  }
+
+  // Lấy rule detail theo id
+  async getRuleById(id: string) {
+    const rule = await this.scheduleRuleRepo.findOne({
+      where: { id },
+      relations: [], // bỏ qua các entity quan hệ nào
+    });
+
+    if (!rule) {
+      throw new NotFoundException(`Không tìm thấy rule với ID ${id}`);
+    }
+
+    return rule;
   }
 
   // ✅ Cập nhật rule

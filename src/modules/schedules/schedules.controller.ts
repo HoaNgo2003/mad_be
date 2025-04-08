@@ -19,6 +19,13 @@ export class SchedulesController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get schedule rule by id' })
+  @Get('/rules/:id')
+  async getRuleById(@Param('id') id: string){
+    return this.schedulesService.getRuleById(id);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update schedule rule by id' })
   @Put('/rules/:id')
   async updateRule(@Param('id') id: string, @Body() data: UpdateScheduleRuleDto) {
