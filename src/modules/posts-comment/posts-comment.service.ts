@@ -87,7 +87,6 @@ export class PostsCommentService extends BaseMySqlService<PostsComment> {
         result.push(comment);
       }
     });
-
     return result;
   }
 

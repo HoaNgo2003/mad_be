@@ -52,7 +52,7 @@ export class PostsService extends BaseMySqlService<Posts> {
     return Promise.all(
       posts.map(async (post) => {
         const isLike = post.posts_like.some(
-          (like) => like.user_id === user.id && like.type === EReact.like,
+          (like) => like.user_id == user.id && like.type === EReact.like,
         );
 
         const [like, share] = await Promise.all([
