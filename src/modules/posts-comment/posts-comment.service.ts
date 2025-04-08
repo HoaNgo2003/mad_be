@@ -53,8 +53,8 @@ export class PostsCommentService extends BaseMySqlService<PostsComment> {
     if (!comment) throw new NotFoundException(`Comment #${id} not found`);
     return comment;
   }
+
   async getCommentsByPostId(postId: string) {
-    // Lấy toàn bộ comment của post, gồm cả user và parent
     const comments = await this.commentRepo.find({
       where: { posts: { id: postId } },
       relations: ['user', 'parent', 'replies', 'replies.user'],
@@ -63,10 +63,7 @@ export class PostsCommentService extends BaseMySqlService<PostsComment> {
       },
     });
 
-    // Tạo map để dễ tra cứu
     const commentMap = new Map<string, any>();
-    console.log(comments, 'comments');
-    // Convert toàn bộ comment sang dạng đơn giản (POJO) & add vào map
     comments.forEach((comment) => {
       commentMap.set(comment.id, {
         id: comment.id,
@@ -80,7 +77,6 @@ export class PostsCommentService extends BaseMySqlService<PostsComment> {
 
     const result: any[] = [];
 
-    // Gán reply vào đúng cha của nó
     commentMap.forEach((comment) => {
       if (comment.parent_id) {
         const parent = commentMap.get(comment.parent_id);

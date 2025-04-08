@@ -22,7 +22,7 @@ export class PostsLikeController {
   ) {}
 
   @ApiBearerAuth()
-  @Post('like/:id')
+  @Post('like-or-dislike/:id')
   @ApiOperation({ summary: 'Like post' })
   async likePosts(@CurrentUser() user: User, @Param() param: ParamIdPostsDto) {
     try {
@@ -40,8 +40,28 @@ export class PostsLikeController {
         (like) => like.user_id == user.id && like.type == EReact.like,
       );
       if (isLike) {
+        await this.repo.hardDeleteOne({
+          filter: [
+            {
+              field: 'posts.id',
+              operator: 'eq',
+              value: posts.id,
+            },
+            {
+              field: 'user_id',
+              operator: 'eq',
+              value: user.id,
+            },
+          ],
+        });
+        await this.notiService.sendPushNotification(
+          posts.user.token_device,
+          `new notification`,
+          '${user.username} just unliked your post!!!',
+          posts.user,
+        );
         return {
-          message: 'You had liked this post!',
+          message: 'You had unliked this post!',
         };
       }
       await this.repo.createOne({
@@ -58,51 +78,6 @@ export class PostsLikeController {
       );
       return {
         message: 'You had liked this post!',
-      };
-    } catch (error) {
-      throw new BadRequestException(ErrorMessage.Post.cannotLikeThisPost);
-    }
-  }
-
-  @ApiBearerAuth()
-  @Post('dislike/:id')
-  @ApiOperation({ summary: 'Like post' })
-  async dislikePosts(
-    @CurrentUser() user: User,
-    @Param() param: ParamIdPostsDto,
-  ) {
-    try {
-      const posts = await this.postsService.getOne({
-        filter: [
-          {
-            field: 'id',
-            operator: 'eq',
-            value: param.id,
-          },
-        ],
-      });
-      const isDislike = posts.posts_like.some((like) => {
-        return like.user_id == user.id && like.type == EReact.dislike;
-      });
-      if (isDislike) {
-        return {
-          message: 'You had disliked this post!',
-        };
-      }
-
-      await this.repo.createOne({
-        user_id: user.id,
-        type: EReact.dislike,
-        posts,
-      });
-      await this.notiService.sendPushNotification(
-        posts.user.token_device,
-        `new notification`,
-        '${user.username} just disliked your post!!!',
-        posts.user,
-      );
-      return {
-        message: 'You had disliked this post!',
       };
     } catch (error) {
       throw new BadRequestException(ErrorMessage.Post.cannotLikeThisPost);

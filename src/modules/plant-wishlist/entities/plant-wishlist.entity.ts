@@ -1,7 +1,7 @@
 import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
 import { Plant } from 'src/modules/plant/entities/plant.entity';
 import { User } from 'src/modules/user/entities/user.entity';
-import { Entity, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
+import { Entity, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity()
 export class PlantWishList extends BaseMySqlEntity {
@@ -11,7 +11,7 @@ export class PlantWishList extends BaseMySqlEntity {
   @JoinColumn({ name: 'wishlist_id' })
   user: User;
 
-  @OneToOne(() => Plant, (plant) => plant.plant_wishlist, {
+  @ManyToOne(() => Plant, (plant) => plant.plant_wishlist, {
     cascade: false,
     eager: true,
   })

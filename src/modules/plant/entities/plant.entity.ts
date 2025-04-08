@@ -25,8 +25,10 @@ export class Plant extends BaseMySqlEntity {
   })
   plant_processes: PlantCareProcess[];
 
-  @OneToOne(() => PlantWishList, (wishlist) => wishlist.plant)
-  plant_wishlist: PlantWishList;
+  @OneToMany(() => PlantWishList, (wishlist) => wishlist.plant, {
+    cascade: true,
+  })
+  plant_wishlist: PlantWishList[];
 
   @OneToMany(() => PlantSearchHistory, (searchHistory) => searchHistory.plant, {
     cascade: true,

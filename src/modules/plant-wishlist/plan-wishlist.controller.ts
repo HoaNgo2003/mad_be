@@ -47,4 +47,15 @@ export class PlantWishlistController {
       filter: [{ field: 'id', operator: 'eq', value: id }],
     });
   }
+
+  @ApiBearerAuth()
+  @Get('/check/:id')
+  @ApiOperation({ summary: 'Check if a plant is in the wishlist' })
+  @HttpCode(HttpStatus.OK)
+  async checkPlantInWishList(
+    @CurrentUser() user: User,
+    @Param('id') plantId: string,
+  ) {
+    return this.plantWishlistService.checkPlantInWishList(user, plantId);
+  }
 }

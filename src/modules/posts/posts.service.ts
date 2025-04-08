@@ -6,7 +6,6 @@ import { Posts } from './entities/posts.entity';
 import { User } from '../user/entities/user.entity';
 import { PostsLikeService } from '../posts-like/posts-like.service';
 import { EReact } from 'src/common/types/data-type';
-import { filter } from 'rxjs';
 import { PostsShareService } from '../posts-share/posts-share.service';
 import { PostsCommentService } from '../posts-comment/posts-comment.service';
 
@@ -21,27 +20,19 @@ export class PostsService extends BaseMySqlService<Posts> {
   ) {
     super(repo);
   }
-  async getListPostByUser(user: User) {
-    let postsData = await this.repo.find({
-      where: {
-        user: {
-          id: user.id,
-        },
-      },
-    });
-    const resPostDatas = await Promise.all(
-      postsData.map(async (post) => {
-        const like = await this.postLikeService.countPostLike(post.id);
-        const dislike = await this.postLikeService.countPostDislike(post.id);
-        return {
-          ...post,
-          posts_like: like,
-          posts_dislike: dislike,
-          comments: post.comments.length,
-        };
-      }),
-    );
-    return resPostDatas;
+  async getListPostByCurrentUser(user: User) {
+    const postsData = await this.repo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.posts_like', 'posts_like')
+      .leftJoinAndSelect('post.comments', 'comments')
+      .leftJoinAndSelect('comments.user', 'commentUser')
+      .leftJoinAndSelect('comments.replies', 'replies')
+      .leftJoinAndSelect('replies.user', 'replyUser')
+      .where('user.id = :userId', { userId: user.id })
+      .getMany();
+
+    return this.enrichPosts(postsData, user);
   }
 
   async getListPost(user: User) {
@@ -55,38 +46,34 @@ export class PostsService extends BaseMySqlService<Posts> {
       .leftJoinAndSelect('replies.user', 'replyUser')
       .getMany();
 
-    const enrichedPosts = await Promise.all(
-      postsData.map(async (post) => {
+    return this.enrichPosts(postsData, user);
+  }
+  private async enrichPosts(posts: Posts[], user: User) {
+    return Promise.all(
+      posts.map(async (post) => {
         const isLike = post.posts_like.some(
           (like) => like.user_id === user.id && like.type === EReact.like,
         );
-        const isDislike = post.posts_like.some(
-          (like) => like.user_id === user.id && like.type === EReact.dislike,
-        );
 
-        const [like, dislike, share] = await Promise.all([
+        const [like, share] = await Promise.all([
           this.postLikeService.countPostLike(post.id),
-          this.postLikeService.countPostDislike(post.id),
           this.postShareService.countSharePost(post.id),
         ]);
 
         const commentData = await this.postCommentService.getCommentsByPostId(
           post.id,
         );
+
         return {
           ...post,
           is_like: isLike,
-          is_dislike: isDislike,
           posts_like: like,
-          posts_dislike: dislike,
           posts_share: share,
           comments: commentData,
           comments_count: post.comments.length,
         };
       }),
     );
-
-    return enrichedPosts;
   }
 
   async getOnePost(user: User, postId: string) {
@@ -106,16 +93,11 @@ export class PostsService extends BaseMySqlService<Posts> {
     }
 
     const isLike = post.posts_like.some(
-      (like) => like.user_id === user.id && like.type === EReact.like,
+      (like) => like.user_id == user.id && like.type === EReact.like,
     );
 
-    const isDislike = post.posts_like.some(
-      (like) => like.user_id === user.id && like.type === EReact.dislike,
-    );
-
-    const [like, dislike, share] = await Promise.all([
+    const [like, share] = await Promise.all([
       this.postLikeService.countPostLike(post.id),
-      this.postLikeService.countPostDislike(post.id),
       this.postShareService.countSharePost(post.id),
     ]);
 
@@ -124,9 +106,7 @@ export class PostsService extends BaseMySqlService<Posts> {
     return {
       ...post,
       is_like: isLike,
-      is_dislike: isDislike,
       posts_like: like,
-      posts_dislike: dislike,
       posts_share: share,
       comments,
       comments_count: post.comments.length,

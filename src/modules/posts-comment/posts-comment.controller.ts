@@ -57,8 +57,6 @@ export class PostsCommentController {
       dto.post_id,
       dto.replied_user_id,
     );
-    console.log(post, 'post');
-    // Gửi noti cho chủ post
     if (post.user?.token_device && post.user.id !== user.id) {
       await this.notiService.sendPushNotification(
         post.user.token_device,
@@ -68,10 +66,8 @@ export class PostsCommentController {
       );
     }
 
-    // Gửi noti cho người được reply
     if (
-      parentComment &&
-      parentComment.user?.token_device &&
+      parentComment?.user?.token_device &&
       parentComment.user.id !== user.id
     ) {
       await this.notiService.sendPushNotification(

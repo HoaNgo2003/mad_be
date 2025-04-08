@@ -26,9 +26,38 @@ export class PlantWishlistService extends BaseMySqlService<PlantWishList> {
         },
       ],
     });
+    if (!plant) {
+      throw new Error('Plant not found');
+    }
+    const existingWishlist = await this.checkPlantInWishList(user, id);
+    if (existingWishlist) {
+      throw new Error('Plant already in wishlist');
+    }
     return this.createOne({
       plant,
       user,
     });
+  }
+
+  async checkPlantInWishList(user: User, id: string) {
+    const plant = await this.plantService.getOne({
+      filter: [
+        {
+          field: 'id',
+          operator: 'eq',
+          value: id,
+        },
+      ],
+    });
+    const wishlist = await this.repo.findOne({
+      where: {
+        user: { id: user.id },
+        plant: { id: plant.id },
+      },
+    });
+    if (wishlist) {
+      return true;
+    }
+    return false;
   }
 }

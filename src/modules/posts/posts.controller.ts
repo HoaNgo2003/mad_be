@@ -109,7 +109,7 @@ export class PostsController {
   @Get('/current-user')
   @ApiOperation({ summary: 'get list posts by current user' })
   async getAllPost(@CurrentUser() user: User) {
-    return this.repo.getListPostByUser(user);
+    return this.repo.getListPostByCurrentUser(user);
   }
 
   @ApiBearerAuth()
