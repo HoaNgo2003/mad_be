@@ -8,6 +8,9 @@ import { UploadModule } from '../upload/upload.module';
 import { PostsController } from './posts.controller';
 import { PostsLikeModule } from '../posts-like/posts-like.module';
 import { NotificationModule } from '../notification/notification.module';
+import { PostsShareModule } from '../posts-share/posts-share.module';
+
+import { PostsCommentModule } from '../posts-comment/posts-comment.module';
 const validateConstraint = [IsPostExistContraints];
 @Module({
   imports: [
@@ -15,6 +18,8 @@ const validateConstraint = [IsPostExistContraints];
     forwardRef(() => UserFollowModule),
     forwardRef(() => UploadModule),
     forwardRef(() => PostsLikeModule),
+    forwardRef(() => PostsShareModule),
+    forwardRef(() => PostsCommentModule),
     NotificationModule,
   ],
   exports: [PostsService],

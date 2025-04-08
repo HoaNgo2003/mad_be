@@ -43,6 +43,7 @@ import { UserFollowModule } from './modules/user-follow/user.follow.module';
 import { Notification } from './modules/notification/entities/notification.entity';
 import { UserPlants } from './modules/plant-user/entities/plant-user.entity';
 import { PlantUserModule } from './modules/plant-user/plant-user.module';
+import { PostsShareModule } from './modules/posts-share/posts-share.module';
 
 @Module({
   imports: [
@@ -73,7 +74,6 @@ import { PlantUserModule } from './modules/plant-user/plant-user.module';
         PostsLike,
         PostsShare,
         UserFollow,
-
         Notification,
         UserPlants,
       ],
@@ -100,6 +100,7 @@ import { PlantUserModule } from './modules/plant-user/plant-user.module';
     PostsModule,
     UserFollowModule,
     PlantUserModule,
+    PostsShareModule,
   ],
   controllers: [AppController],
   providers: [

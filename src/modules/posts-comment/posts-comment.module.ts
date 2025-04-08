@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsComment } from './entities/posts-comment.entity';
 import { PostsCommentService } from './posts-comment.service';
@@ -12,7 +12,7 @@ const validateConstraint = [];
     TypeOrmModule.forFeature([PostsComment]),
     UsersModule,
     NotificationModule,
-    PostsModule,
+    forwardRef(() => PostsModule),
   ],
   exports: [PostsCommentService],
   controllers: [PostsCommentController],

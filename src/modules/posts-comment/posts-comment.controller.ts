@@ -1,20 +1,18 @@
 import {
-  BadRequestException,
-  Body,
   Controller,
-  Delete,
-  Param,
-  Patch,
   Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
-import { PostsService } from '../posts/posts.service';
-import { ErrorMessage } from 'src/common/error-message';
-import { NotificationService } from '../notification/notification.service';
 import { PostsCommentService } from './posts-comment.service';
-import { UsersService } from '../user/user.service';
+import { PostsService } from '../posts/posts.service';
+import { NotificationService } from '../notification/notification.service';
 import {
   CreatePostCommentDto,
   UpdatePostCommentDto,
@@ -27,103 +25,87 @@ import {
 })
 export class PostsCommentController {
   constructor(
-    private readonly repo: PostsCommentService,
-    private readonly postsService: PostsService,
+    private readonly commentService: PostsCommentService,
+    private readonly postService: PostsService,
     private readonly notiService: NotificationService,
-    private readonly userService: UsersService,
   ) {}
 
   @ApiBearerAuth()
-  @Post('')
-  @ApiOperation({ summary: 'comment post' })
-  async createOne(
+  @Post()
+  @ApiOperation({ summary: 'Create a new comment or reply' })
+  async createComment(
     @CurrentUser() user: User,
     @Body() dto: CreatePostCommentDto,
   ) {
-    const [posts, parentComment] = await Promise.all([
-      this.postsService.getOne({
-        filter: [{ field: 'id', operator: 'eq', value: dto.post_id }],
-        join: [
-          {
-            field: 'user',
-            select: ['token_device'],
-          },
-        ],
-      }),
-      dto.replied_user_id
-        ? this.repo.getOne({
-            filter: [
-              {
-                field: 'id',
-                operator: 'eq',
-                value: dto.replied_user_id,
-              },
-            ],
-            join: [
-              {
-                field: 'user',
-                select: ['token_device'],
-              },
-            ],
-          })
-        : null,
-    ]);
-
-    const comment = await this.repo.createOne({
-      content: dto.content,
-      posts,
-      user,
-      parent: parentComment,
+    const post = await this.postService.getOne({
+      filter: [{ field: 'id', operator: 'eq', value: dto.post_id }],
+      join: [{ field: 'user', select: ['token_device'] }],
     });
-    await this.notiService.sendPushNotification(
-      posts.user.token_device,
-      'new notification',
-      `${user.username} just post new comment in your post`,
-      posts.user,
+
+    if (!post) throw new BadRequestException('Post not found');
+
+    const parentComment = dto.replied_user_id
+      ? await this.commentService.getOne({
+          filter: [{ field: 'id', operator: 'eq', value: dto.replied_user_id }],
+          join: [{ field: 'user', select: ['token_device'] }],
+        })
+      : null;
+
+    const newComment = await this.commentService.createComment(
+      dto.content,
+      user.id,
+      dto.post_id,
+      dto.replied_user_id,
     );
-    if (dto.replied_user_id) {
+    console.log(post, 'post');
+    // Gửi noti cho chủ post
+    if (post.user?.token_device && post.user.id !== user.id) {
+      await this.notiService.sendPushNotification(
+        post.user.token_device,
+        '📢 New Comment',
+        `${user.username} commented on your post.`,
+        post.user,
+      );
+    }
+
+    // Gửi noti cho người được reply
+    if (
+      parentComment &&
+      parentComment.user?.token_device &&
+      parentComment.user.id !== user.id
+    ) {
       await this.notiService.sendPushNotification(
         parentComment.user.token_device,
-        'new notification',
-        `${user.username} just replied you comment`,
+        '💬 Reply to your comment',
+        `${user.username} replied to your comment.`,
         parentComment.user,
       );
     }
-    return comment;
-  }
 
-  @ApiBearerAuth()
-  @Delete(':id')
-  @ApiOperation({ summary: 'delete a comment' })
-  async deleteOne(@Param('id') id: string) {
-    return this.repo.hardDeleteOne({
-      filter: [
-        {
-          field: 'id',
-          operator: 'eq',
-          value: id,
-        },
-      ],
-    });
+    return newComment;
   }
 
   @ApiBearerAuth()
   @Patch(':id')
-  @ApiOperation({ summary: 'update a comment' })
-  async updateOne(@Param('id') id: string, @Body() dto: UpdatePostCommentDto) {
-    return await this.repo.updateOne(
+  @ApiOperation({ summary: 'Update a comment' })
+  async updateComment(
+    @Param('id') id: string,
+    @Body() dto: UpdatePostCommentDto,
+  ) {
+    return await this.commentService.updateOne(
       {
-        filter: [
-          {
-            field: 'id',
-            operator: 'eq',
-            value: id,
-          },
-        ],
+        filter: [{ field: 'id', operator: 'eq', value: id }],
       },
-      {
-        content: dto.content,
-      },
+      { content: dto.content },
     );
+  }
+
+  @ApiBearerAuth()
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a comment permanently (hard delete)' })
+  async deleteComment(@Param('id') id: string) {
+    return await this.commentService.hardDeleteOne({
+      filter: [{ field: 'id', operator: 'eq', value: id }],
+    });
   }
 }

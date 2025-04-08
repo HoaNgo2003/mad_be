@@ -32,6 +32,7 @@ import { PostsLikeService } from '../posts-like/posts-like.service';
 import { NotificationService } from '../notification/notification.service';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { EReact } from 'src/common/types/data-type';
+import { PostsShareService } from '../posts-share/posts-share.service';
 
 @ApiTags('Posts')
 @Controller({
@@ -44,6 +45,7 @@ export class PostsController {
     private readonly userFollowService: UserFollowService,
     private readonly uploadService: UploadService,
     private readonly postsLikeService: PostsLikeService,
+    private readonly postsShareService: PostsShareService,
     private readonly notiService: NotificationService,
   ) {}
 
@@ -117,44 +119,11 @@ export class PostsController {
     return this.repo.getListPost(user);
   }
 
-  @Public()
+  @ApiBearerAuth()
   @Get(':id')
   @ApiOperation({ summary: 'get one post' })
-  async getOne(@ParsedRequest() req: CrudRequest, @Param() param: PostsIdDto) {
-    const { parsed } = req;
-    parsed.join = [
-      {
-        field: 'user',
-      },
-      {
-        field: 'comments',
-      },
-    ];
-    parsed.filter = [
-      {
-        field: 'id',
-        operator: 'eq',
-        value: param.id,
-      },
-    ];
-
-    const post = await this.repo.getOne(parsed);
-    const is_like = post.posts_like.some(
-      (like) => like.user_id == post.user.id && like.type == EReact.like,
-    );
-    const is_dislike = post.posts_like.some(
-      (like) => like.user_id == post.user.id && like.type == EReact.dislike,
-    );
-    const like = await this.postsLikeService.countPostLike(post.id);
-    const dislike = await this.postsLikeService.countPostDislike(post.id);
-    return {
-      ...post,
-      posts_like: like,
-      posts_dislike: dislike,
-      comments: post.comments.length,
-      is_like,
-      is_dislike,
-    };
+  async getOne(@Param() param: PostsIdDto, @CurrentUser() user: User) {
+    return this.repo.getOnePost(user, param.id);
   }
 
   @ApiBearerAuth()

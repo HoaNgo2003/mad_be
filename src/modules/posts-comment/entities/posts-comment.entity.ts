@@ -10,6 +10,7 @@ export class PostsComment extends BaseMySqlEntity {
 
   @ManyToOne(() => User, (user) => user.comments, {
     onDelete: 'CASCADE',
+    cascade: true,
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
@@ -27,4 +28,7 @@ export class PostsComment extends BaseMySqlEntity {
 
   @OneToMany(() => PostsComment, (comment) => comment.parent)
   replies: PostsComment[];
+
+  @Column({ default: 0 })
+  depth: number;
 }

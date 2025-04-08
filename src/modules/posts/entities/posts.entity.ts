@@ -36,6 +36,8 @@ export class Posts extends BaseMySqlEntity {
 
   @ManyToOne(() => User, (user) => user.posts, {
     cascade: true,
+    eager: true,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'post_user' })
   user: User;

@@ -51,9 +51,7 @@ export class User extends BaseMySqlEntity {
   @OneToMany(() => PlantSearchHistory, (history) => history.user)
   plant_search_histories: PlantSearchHistory[];
 
-  @OneToMany(() => PostsComment, (comment) => comment.user, {
-    eager: true,
-  })
+  @OneToMany(() => PostsComment, (comment) => comment.user)
   comments: PostsComment[];
 
   @OneToMany(() => UserFollow, (follower) => follower.follower)
