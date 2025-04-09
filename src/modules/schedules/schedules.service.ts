@@ -179,6 +179,30 @@ export class SchedulesService {
       .getMany();
   }
 
+  async getPastTasksByRule(ruleId: string, date?: string) {
+    const target = date ? new Date(date) : new Date();
+    target.setHours(0, 0, 0, 0); // Lấy từ đầu ngày
+  
+    return this.scheduleTaskRepo
+      .createQueryBuilder('task')
+      .where('task.ruleId = :ruleId', { ruleId })
+      .andWhere('task.scheduled_at < :beforeDate', { beforeDate: target })
+      .andWhere('task.deletedAt IS NULL')
+      .orderBy('task.scheduled_at', 'DESC') // ưu tiên task gần ngày hiện tại nhất
+      .addOrderBy('task.status', 'ASC')
+      .select([
+        'task.id',
+        'task.task_name',
+        'task.status',
+        'task.scheduled_at',
+        'task.notes',
+        'task.createdAt',
+        'task.updatedAt',
+      ])
+      .getMany();
+  }
+
+
   // ✅ Đánh dấu hoàn thành task
   async markTaskAsDone(taskId: string) {
     const task = await this.scheduleTaskRepo.findOne({ where: { id: taskId } });
