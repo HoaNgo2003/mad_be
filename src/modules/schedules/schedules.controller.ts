@@ -35,7 +35,7 @@ export class SchedulesController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update schedule rule by id' })
-  @Put('/rules/:id')
+  @Patch('/rules/:id')
   async updateRule(@Param('id') id: string, @Body() data: UpdateScheduleRuleDto) {
     return this.schedulesService.updateRule(id, data);
   }
