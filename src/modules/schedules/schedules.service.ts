@@ -5,6 +5,7 @@ import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ScheduleTask } from './entities/schedule-task.entity';
 import { UserPlants } from '../plant-user/entities/plant-user.entity';
 import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
+import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
 
 @Injectable()
 export class SchedulesService {
@@ -75,19 +76,45 @@ export class SchedulesService {
   
 
   // ✅ Cập nhật rule
-  async updateRule(ruleId: string, data: Partial<ScheduleRule>) {
+  async updateRule(ruleId: string, data: UpdateScheduleRuleDto) {
     const rule = await this.scheduleRuleRepo.findOne({
       where: { id: ruleId },
-      relations: ['user_plant'],
+      relations: ['user_plant', 'user_plant.plant'],
     });
-
+  
     if (!rule) {
       throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
     }
-
+  
+    // Cập nhật rule
     const updatedRule = this.scheduleRuleRepo.merge(rule, data);
-    return this.scheduleRuleRepo.save(updatedRule);
+    const savedRule = await this.scheduleRuleRepo.save(updatedRule);
+  
+    // ✅ Cập nhật các task PENDING
+    const pendingTasks = await this.scheduleTaskRepo.find({
+      where: {
+        rule: { id: ruleId },
+        status: 'pending',
+        deletedAt: IsNull(),
+      },
+    });
+  
+    for (const task of pendingTasks) {
+      if (data.task_name) task.task_name = data.task_name;
+      if (data.time_of_day) {
+        const [h, m] = data.time_of_day.split(':').map(Number);
+        task.scheduled_at.setHours(h, m, 0, 0);
+      }
+      if (data.notes !== undefined) task.notes = data.notes;
+      await this.scheduleTaskRepo.save(task);
+    }
+  
+    return {
+      message: 'Cập nhật rule và task pending thành công.',
+      updatedRule: savedRule,
+    };
   }
+  
 
   // ✅ Xóa rule (mềm)
   async deleteRuleById(ruleId: string) {
