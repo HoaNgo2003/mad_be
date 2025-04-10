@@ -1,6 +1,6 @@
 import { Controller, Post, Put, Get, Delete, Body, Param, Query, Patch } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
 import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
 
@@ -21,21 +21,21 @@ export class SchedulesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get schedule rule by id' })
   @Get('/rules/:id')
-  async getRuleById(@Param('id') id: string){
+  async getRuleById(@Param('id') id: string) {
     return this.schedulesService.getRuleById(id);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get schedule rule by userPlantId' })
   @Get('/rules/user-plant/:userPlantId')
-  async getRulesByUserPlantId(@Param('userPlantId') id: string){
+  async getRulesByUserPlantId(@Param('userPlantId') id: string) {
     return this.schedulesService.getRulesByUserPlantId(id);
   }
 
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update schedule rule by id' })
-  @Put('/rules/:id')
+  @Patch('/rules/:id')
   async updateRule(@Param('id') id: string, @Body() data: UpdateScheduleRuleDto) {
     return this.schedulesService.updateRule(id, data);
   }
@@ -55,13 +55,24 @@ export class SchedulesController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get list task by userId and date' })
+  @ApiOperation({ summary: 'Get list task by user and date' })
   @Get('/tasks-by-date')
-  async getTasksByDate(
+  async getTasksByDateAndUser(
     @Query('userId') userId: number,
     @Query('date') date: string,
   ) {
     return this.schedulesService.getTasksByUserAndDate(userId, date);
+  }
+
+  @ApiBearerAuth()
+  @Get('/rules/past-tasks/:ruleId')
+  @ApiOperation({ summary: 'Get past task by ruleId and date' })
+  @ApiQuery({ name: 'date', required: false })
+  async getPastTasksByRule(
+    @Param('ruleId') ruleId: string,
+    @Query('date') date?: string
+  ) {
+    return this.schedulesService.getPastTasksByRule(ruleId, date);
   }
 
   @ApiBearerAuth()
