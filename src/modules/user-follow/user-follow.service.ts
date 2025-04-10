@@ -33,10 +33,47 @@ export class UserFollowService extends BaseMySqlService<UserFollow> {
       relations: ['follower'],
     });
   }
-  async unFollow(id: string) {
+
+  async unFollow(folowerId: string, followingId: string) {
     return this.repo.delete({
       follower: {
-        id,
+        id: folowerId,
+      },
+      following: {
+        id: followingId,
+      },
+    });
+  }
+
+  async countFollowing(id: string) {
+    return this.repo.count({
+      where: {
+        follower: {
+          id,
+        },
+      },
+    });
+  }
+
+  async countFollower(id: string) {
+    return this.repo.count({
+      where: {
+        following: {
+          id,
+        },
+      },
+    });
+  }
+
+  async checkFollow(followerId: string, followingId: string) {
+    return this.repo.findOne({
+      where: {
+        follower: {
+          id: followerId,
+        },
+        following: {
+          id: followingId,
+        },
       },
     });
   }

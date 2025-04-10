@@ -27,6 +27,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { UploadService } from '../upload/upload.service';
+import { CurrentUser } from 'src/common/decorator/user.decorator';
 
 @ApiTags('User')
 @Controller({
@@ -40,7 +41,18 @@ export class UserController {
   ) {}
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @ApiOperation({ summary: 'Get current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Get current user login',
+    type: [User],
+  })
+  async getMe(@CurrentUser() user): Promise<any> {
+    return this.service.getCurrentUser(user.id);
+  }
+
+  @ApiBearerAuth()
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'List of users', type: [User] })

@@ -59,7 +59,7 @@ export class PostsCommentService extends BaseMySqlService<PostsComment> {
       where: { posts: { id: postId } },
       relations: ['user', 'parent', 'replies', 'replies.user'],
       order: {
-        createdAt: 'ASC',
+        createdAt: 'DESC',
       },
     });
 

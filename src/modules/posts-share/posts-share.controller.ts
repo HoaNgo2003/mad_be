@@ -38,18 +38,10 @@ export class PostsShareController {
         ],
       });
 
-      const isShare = posts.posts_share.some((like) => like.user_id == user.id);
-      if (isShare) {
-        return {
-          message: 'You had shared this post!',
-        };
-      }
-
       await this.repo.createOne({
         user_id: user.id,
         posts,
       });
-      console.log('posts', posts);
       await this.notiService.sendPushNotification(
         posts.user.token_device,
         `new notification`,
@@ -57,7 +49,7 @@ export class PostsShareController {
         posts.user,
       );
       return {
-        message: 'You had liked this post!',
+        message: 'You had shared this post!',
       };
     } catch (error) {
       console.log(error);

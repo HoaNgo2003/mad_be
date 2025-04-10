@@ -11,7 +11,9 @@ import { NotificationModule } from '../notification/notification.module';
 import { PostsShareModule } from '../posts-share/posts-share.module';
 
 import { PostsCommentModule } from '../posts-comment/posts-comment.module';
-const validateConstraint = [IsPostExistContraints];
+import { UsersModule } from '../user/user.module';
+import { IsUserNotFoundContraints } from 'src/common/validators/user.validate';
+const validateConstraint = [IsPostExistContraints, IsUserNotFoundContraints];
 @Module({
   imports: [
     TypeOrmModule.forFeature([Posts]),
@@ -21,6 +23,7 @@ const validateConstraint = [IsPostExistContraints];
     forwardRef(() => PostsShareModule),
     forwardRef(() => PostsCommentModule),
     NotificationModule,
+    UsersModule,
   ],
   exports: [PostsService],
   controllers: [PostsController],

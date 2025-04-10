@@ -33,6 +33,8 @@ import { NotificationService } from '../notification/notification.service';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { EReact } from 'src/common/types/data-type';
 import { PostsShareService } from '../posts-share/posts-share.service';
+import { UserIdDto } from '../user-follow/dtos/paramUserId.dto';
+import { UsersService } from '../user/user.service';
 
 @ApiTags('Posts')
 @Controller({
@@ -47,6 +49,7 @@ export class PostsController {
     private readonly postsLikeService: PostsLikeService,
     private readonly postsShareService: PostsShareService,
     private readonly notiService: NotificationService,
+    private readonly userService: UsersService,
   ) {}
 
   @ApiBearerAuth()
@@ -109,6 +112,22 @@ export class PostsController {
   @Get('/current-user')
   @ApiOperation({ summary: 'get list posts by current user' })
   async getAllPost(@CurrentUser() user: User) {
+    return this.repo.getListPostByCurrentUser(user);
+  }
+
+  @Public()
+  @Get('/user/:id')
+  @ApiOperation({ summary: 'get list posts by user' })
+  async getListPostByUserId(@Param() param: UserIdDto) {
+    const user = await this.userService.getOne({
+      filter: [
+        {
+          field: 'id',
+          operator: 'eq',
+          value: param.id,
+        },
+      ],
+    });
     return this.repo.getListPostByCurrentUser(user);
   }
 

@@ -88,7 +88,7 @@ export class PostsCommentController {
     @Param('id') id: string,
     @Body() dto: UpdatePostCommentDto,
   ) {
-    return await this.commentService.updateOne(
+    return this.commentService.updateOne(
       {
         filter: [{ field: 'id', operator: 'eq', value: id }],
       },
@@ -100,7 +100,7 @@ export class PostsCommentController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a comment permanently (hard delete)' })
   async deleteComment(@Param('id') id: string) {
-    return await this.commentService.hardDeleteOne({
+    return this.commentService.hardDeleteOne({
       filter: [{ field: 'id', operator: 'eq', value: id }],
     });
   }

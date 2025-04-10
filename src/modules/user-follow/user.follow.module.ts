@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserFollow } from './entities/user-follow.entity';
 import { UserFollowService } from './user-follow.service';
@@ -10,8 +10,8 @@ const validateConstraint = [IsUserNotFoundContraints];
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserFollow]),
-    UsersModule,
     NotificationModule,
+    forwardRef(() => UsersModule),
   ],
   exports: [UserFollowService],
   controllers: [UserFollowController],

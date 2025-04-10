@@ -33,7 +33,10 @@ export class User extends BaseMySqlEntity {
   @Column({ default: null })
   birth_day: string;
 
-  @Column({ default: '' })
+  @Column({
+    default:
+      'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png',
+  })
   profile_picture: string;
 
   @OneToMany(() => UserRefreshToken, (token) => token.user)
