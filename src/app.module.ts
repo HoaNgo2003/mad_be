@@ -26,7 +26,7 @@ import { PlantListTaskModule } from './modules/plant-list-task/plan-list-task.mo
 import { PlantCareProcessModule } from './modules/plant-care-process/plant-care-process.module';
 import { PlantWishList } from './modules/plant-wishlist/entities/plant-wishlist.entity';
 import { PlantWishlistModule } from './modules/plant-wishlist/plan-wishlist.module';
-import { SchedulesModule } from './modules/schedules/schedules.module';
+import { SchedulesTaskModule } from './modules/schedules/schedules.module';
 import { ScheduleRule } from './modules/schedules/entities/schedule-rule.entity';
 import { ScheduleTask } from './modules/schedules/entities/schedule-task.entity';
 import { PlantSearchHistory } from './modules/plant-search-history/entities/plant-search-history.entity';
@@ -44,6 +44,7 @@ import { Notification } from './modules/notification/entities/notification.entit
 import { UserPlants } from './modules/plant-user/entities/plant-user.entity';
 import { PlantUserModule } from './modules/plant-user/plant-user.module';
 import { PostsShareModule } from './modules/posts-share/posts-share.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -53,7 +54,7 @@ import { PostsShareModule } from './modules/posts-share/posts-share.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3306,
+      port: 3307,
       username: `${process.env.DB_USERNAME}`,
       password: `${process.env.DB_PASSWORD}`,
       database: `${process.env.DB_NAME}`,
@@ -93,7 +94,7 @@ import { PostsShareModule } from './modules/posts-share/posts-share.module';
     PlantListTaskModule,
     PlantCareProcessModule,
     PlantWishlistModule,
-    SchedulesModule,
+    SchedulesTaskModule,
     PlantSearchHistoryModule,
     PostsLikeModule,
     PostsCommentModule,
@@ -101,6 +102,7 @@ import { PostsShareModule } from './modules/posts-share/posts-share.module';
     UserFollowModule,
     PlantUserModule,
     PostsShareModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [

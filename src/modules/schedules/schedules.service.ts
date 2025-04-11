@@ -1,33 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, IsNull, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ScheduleTask } from './entities/schedule-task.entity';
 import { UserPlants } from '../plant-user/entities/plant-user.entity';
 import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
 import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class SchedulesService {
   constructor(
     @InjectRepository(ScheduleRule)
-    private scheduleRuleRepo: Repository<ScheduleRule>,
+    private readonly scheduleRuleRepo: Repository<ScheduleRule>,
 
     @InjectRepository(ScheduleTask)
-    private scheduleTaskRepo: Repository<ScheduleTask>,
+    private readonly scheduleTaskRepo: Repository<ScheduleTask>,
 
     @InjectRepository(UserPlants)
-    private userPlantRepo: Repository<UserPlants>,
+    private readonly userPlantRepo: Repository<UserPlants>,
+    private readonly notificationService: NotificationService,
   ) {}
 
-  // ✅ Tạo Rule mới
   async createRule(data: CreateScheduleRuleDto) {
     const userPlant = await this.userPlantRepo.findOne({
       where: { id: data.user_plant_id },
     });
 
     if (!userPlant) {
-      throw new NotFoundException(`Không tìm thấy userPlant với ID ${data.user_plant_id}`);
+      throw new NotFoundException(
+        `Không tìm thấy userPlant với ID ${data.user_plant_id}`,
+      );
     }
 
     const rule = this.scheduleRuleRepo.create({
@@ -73,24 +76,21 @@ export class SchedulesService {
       relations: [], // bỏ qua các entity quan hệ
     });
   }
-  
 
-  // ✅ Cập nhật rule
   async updateRule(ruleId: string, data: UpdateScheduleRuleDto) {
     const rule = await this.scheduleRuleRepo.findOne({
       where: { id: ruleId },
       relations: ['user_plant', 'user_plant.plant'],
     });
-  
+
     if (!rule) {
       throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
     }
-  
+
     // Cập nhật rule
     const updatedRule = this.scheduleRuleRepo.merge(rule, data);
     const savedRule = await this.scheduleRuleRepo.save(updatedRule);
-  
-    // ✅ Cập nhật các task PENDING
+
     const pendingTasks = await this.scheduleTaskRepo.find({
       where: {
         rule: { id: ruleId },
@@ -98,7 +98,7 @@ export class SchedulesService {
         deletedAt: IsNull(),
       },
     });
-  
+
     for (const task of pendingTasks) {
       if (data.task_name) task.task_name = data.task_name;
       if (data.time_of_day) {
@@ -108,15 +108,13 @@ export class SchedulesService {
       if (data.notes !== undefined) task.notes = data.notes;
       await this.scheduleTaskRepo.save(task);
     }
-  
+
     return {
       message: 'Cập nhật rule và task pending thành công.',
       updatedRule: savedRule,
     };
   }
-  
 
-  // ✅ Xóa rule (mềm)
   async deleteRuleById(ruleId: string) {
     const rule = await this.scheduleRuleRepo.findOne({ where: { id: ruleId } });
     if (!rule) {
@@ -139,7 +137,6 @@ export class SchedulesService {
     return { message: `Đã xóa rule ID ${ruleId} thành công.` };
   }
 
-  // ✅ Lấy danh sách task toàn bộ
   async getTasks() {
     return this.scheduleTaskRepo.find({
       where: { deletedAt: IsNull() },
@@ -148,7 +145,6 @@ export class SchedulesService {
     });
   }
 
-  // ✅ Lấy task theo user và ngày
   async getTasksByUserAndDate(userId: number, date: string) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
@@ -182,13 +178,13 @@ export class SchedulesService {
   async getPastTasksByRule(ruleId: string, date?: string) {
     const target = date ? new Date(date) : new Date();
     target.setHours(0, 0, 0, 0); // Lấy từ đầu ngày
-  
+
     return this.scheduleTaskRepo
       .createQueryBuilder('task')
       .where('task.ruleId = :ruleId', { ruleId })
       .andWhere('task.scheduled_at < :beforeDate', { beforeDate: target })
       .andWhere('task.deletedAt IS NULL')
-      .orderBy('task.scheduled_at', 'DESC') // ưu tiên task gần ngày hiện tại nhất
+      .orderBy('task.scheduled_at', 'DESC')
       .addOrderBy('task.status', 'ASC')
       .select([
         'task.id',
@@ -202,8 +198,6 @@ export class SchedulesService {
       .getMany();
   }
 
-
-  // ✅ Đánh dấu hoàn thành task
   async markTaskAsDone(taskId: string) {
     const task = await this.scheduleTaskRepo.findOne({ where: { id: taskId } });
 
@@ -221,7 +215,6 @@ export class SchedulesService {
     return { message: `Hoàn thành` };
   }
 
-  // ✅ Sinh 3 task từ rule
   async generateTasksForRule(ruleId: string) {
     const rule = await this.scheduleRuleRepo.findOne({
       where: { id: ruleId },
@@ -259,6 +252,10 @@ export class SchedulesService {
           plant_id: rule.user_plant.plant?.id ?? null,
         });
       }
+
+      // Gửi thông báo đến người dùng
+      const user = rule.user_plant.user;
+      // await this.notificationService.scheduleTaskNotification()
     }
 
     return this.scheduleTaskRepo.save(tasksToInsert);

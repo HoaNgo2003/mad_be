@@ -5,10 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ScheduleTask } from './entities/schedule-task.entity';
 import { UserPlants } from '../plant-user/entities/plant-user.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ScheduleRule, ScheduleTask, UserPlants ])],
+  imports: [
+    TypeOrmModule.forFeature([ScheduleRule, ScheduleTask, UserPlants]),
+    NotificationModule,
+  ],
   controllers: [SchedulesController],
   providers: [SchedulesService],
 })
-export class SchedulesModule {}
+export class SchedulesTaskModule {}

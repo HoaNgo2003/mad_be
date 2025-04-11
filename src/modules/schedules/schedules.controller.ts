@@ -1,4 +1,14 @@
-import { Controller, Post, Put, Get, Delete, Body, Param, Query, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Put,
+  Get,
+  Delete,
+  Body,
+  Param,
+  Query,
+  Patch,
+} from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
@@ -9,7 +19,7 @@ import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
   path: 'schedules',
 })
 export class SchedulesController {
-  constructor(private readonly schedulesService: SchedulesService) { }
+  constructor(private readonly schedulesService: SchedulesService) {}
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create schedule rule' })
@@ -32,11 +42,13 @@ export class SchedulesController {
     return this.schedulesService.getRulesByUserPlantId(id);
   }
 
-
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update schedule rule by id' })
   @Patch('/rules/:id')
-  async updateRule(@Param('id') id: string, @Body() data: UpdateScheduleRuleDto) {
+  async updateRule(
+    @Param('id') id: string,
+    @Body() data: UpdateScheduleRuleDto,
+  ) {
     return this.schedulesService.updateRule(id, data);
   }
 
@@ -70,7 +82,7 @@ export class SchedulesController {
   @ApiQuery({ name: 'date', required: false })
   async getPastTasksByRule(
     @Param('ruleId') ruleId: string,
-    @Query('date') date?: string
+    @Query('date') date?: string,
   ) {
     return this.schedulesService.getPastTasksByRule(ruleId, date);
   }
@@ -82,6 +94,7 @@ export class SchedulesController {
     return this.schedulesService.markTaskAsDone(id);
   }
 
+  @ApiBearerAuth()
   @Get('/tasks')
   async getTasks() {
     return this.schedulesService.getTasks();
