@@ -6,19 +6,41 @@ import { BaseMySqlService } from 'src/common/services/base-mysql.service';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { User } from '../user/entities/user.entity';
+import { ScheduleTask } from '../schedules/entities/schedule-task.entity';
+import { CronJob } from 'cron';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 @Injectable()
 export class NotificationService extends BaseMySqlService<Notification> {
   private readonly expo: Expo;
   private token: string | null = null;
-  private isScheduled = false; // Biến để kiểm tra đã lên lịch hay chưa
-
+  private isScheduled = false;
   constructor(
     @InjectRepository(Notification)
     private readonly repo: Repository<Notification>,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {
     super(repo);
     this.expo = new Expo();
+  }
+
+  scheduleTaskNotification(
+    task: ScheduleTask,
+    token_device: string,
+    user: User,
+  ) {
+    const job = new CronJob(task.scheduled_at, async () => {
+      await this.sendPushNotification(
+        token_device,
+        task.task_name,
+        task.notes,
+        user,
+      );
+    });
+
+    const jobName = `task-notify-${task.id}`;
+    this.schedulerRegistry.addCronJob(jobName, job as any);
+    job.start();
   }
 
   async sendPushNotification(
@@ -28,12 +50,12 @@ export class NotificationService extends BaseMySqlService<Notification> {
     user: User,
   ) {
     if (!Expo.isExpoPushToken(token)) {
-      console.error('❌ Invalid Expo push token:', token);
+      console.error(' Invalid Expo push token:', token);
       return;
     }
 
-    this.token = token; // Lưu token
-    console.log('📩 Sending notification now...');
+    this.token = token;
+    console.log(' Sending notification now...');
 
     const message: ExpoPushMessage = {
       to: token,
@@ -45,9 +67,6 @@ export class NotificationService extends BaseMySqlService<Notification> {
     try {
       const receipts: ExpoPushTicket[] =
         await this.expo.sendPushNotificationsAsync([message]);
-      console.log('✅ Notification sent:', receipts);
-
-      // 🔹 Sau khi gửi noti lần đầu -> Lên lịch gửi sau 5 phút
       const notiDto = {
         title,
         body,
@@ -57,32 +76,28 @@ export class NotificationService extends BaseMySqlService<Notification> {
       await this.createOne(notiDto);
       return { success: true, response: receipts };
     } catch (error) {
-      console.error('❌ Error sending Expo push notification:', error);
+      console.error(' Error sending Expo push notification:', error);
       return { success: false, error: error.message };
     }
   }
 
   private scheduleNotifications() {
-    if (!this.token || this.isScheduled) return; // Tránh lên lịch nhiều lần
+    if (!this.token || this.isScheduled) return;
 
-    this.isScheduled = true; // Đánh dấu đã lên lịch
-
+    this.isScheduled = true;
     const now = new Date();
-    now.setMinutes(now.getMinutes() + 2); // Thêm 5 phút
+    now.setMinutes(now.getMinutes() + 2);
 
     const minute = now.getMinutes();
     const hour = now.getHours();
 
-    const scheduleTime = `${minute} ${hour} * * *`; // Định dạng cron
-
-    console.log(`🕒 Scheduling notification at ${hour}:${minute}`);
+    const scheduleTime = `${minute} ${hour} * * *`;
 
     cron.schedule(scheduleTime, async () => {
-      console.log('⏰ Sending scheduled notification after 5 minutes');
       if (this.token) {
         await this.sendPushNotification(
           this.token,
-          '⏰ Reminder!',
+          ' Reminder!',
           'This notification was scheduled 5 minutes ago!',
           new User(),
         );

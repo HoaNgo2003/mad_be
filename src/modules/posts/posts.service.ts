@@ -48,6 +48,7 @@ export class PostsService extends BaseMySqlService<Posts> {
 
     return this.enrichPosts(postsData, user);
   }
+
   private async enrichPosts(posts: Posts[], user: User) {
     return Promise.all(
       posts.map(async (post) => {

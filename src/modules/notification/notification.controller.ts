@@ -26,7 +26,6 @@ export class NotificationController {
         },
       ],
     });
-    console.log(data);
     return data;
   }
 

@@ -5,7 +5,6 @@ import {
   Param,
   Body,
   Delete,
-  UseGuards,
   Patch,
   UseInterceptors,
   UploadedFile,
@@ -21,7 +20,6 @@ import {
 } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';

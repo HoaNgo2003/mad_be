@@ -10,13 +10,13 @@ import { Plant } from 'src/modules/plant/entities/plant.entity';
 export class UserPlantService {
   constructor(
     @InjectRepository(UserPlants)
-    private repo: Repository<UserPlants>,
+    private readonly repo: Repository<UserPlants>,
 
     @InjectRepository(User)
-    private userRepo: Repository<User>,
+    private readonly userRepo: Repository<User>,
 
     @InjectRepository(Plant)
-    private plantRepo: Repository<Plant>,
+    private readonly plantRepo: Repository<Plant>,
   ) {}
 
   async create(dto: CreateUserPlantDto) {
