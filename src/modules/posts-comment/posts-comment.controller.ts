@@ -58,10 +58,20 @@ export class PostsCommentController {
       dto.replied_user_id,
     );
     if (post.user?.token_device && post.user.id !== user.id) {
+      const data = {
+        username: user.username,
+        userId: user.id,
+        postId: post.id,
+        postTitle: post.title,
+        avatarUrl: user.profile_picture,
+        commentId: newComment.id,
+        commentContent: newComment.content,
+        content: `${user.username} đã bình luận vào bài viết của bạn.`,
+      };
       await this.notiService.sendPushNotification(
         post.user.token_device,
-        '📢 New Comment',
-        `${user.username} commented on your post.`,
+        '📢 Thông báo mới',
+        data,
         post.user,
       );
     }
@@ -70,10 +80,20 @@ export class PostsCommentController {
       parentComment?.user?.token_device &&
       parentComment.user.id !== user.id
     ) {
+      const dataNoti = {
+        username: user.username,
+        userId: user.id,
+        postId: post.id,
+        postTitle: post.title,
+        avatarUrl: user.profile_picture,
+        commentId: newComment.id,
+        commentContent: newComment.content,
+        content: `${user.username} đã trả lời bình luận của bạn.`,
+      };
       await this.notiService.sendPushNotification(
         parentComment.user.token_device,
-        '💬 Reply to your comment',
-        `${user.username} replied to your comment.`,
+        '📢 Thông báo mới',
+        dataNoti,
         parentComment.user,
       );
     }

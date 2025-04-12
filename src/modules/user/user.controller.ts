@@ -26,6 +26,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { UploadService } from '../upload/upload.service';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
+import { UserFollowService } from '../user-follow/user-follow.service';
 
 @ApiTags('User')
 @Controller({
@@ -36,6 +37,7 @@ export class UserController {
   constructor(
     private readonly service: UsersService,
     private readonly uploadService: UploadService,
+    private readonly userFollowService: UserFollowService,
   ) {}
 
   @ApiBearerAuth()
@@ -66,8 +68,12 @@ export class UserController {
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User found', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async findOne(@Param('id') id: string): Promise<User> {
-    return this.service.getOne({
+  async findOne(@Param('id') id: string): Promise<any> {
+    const [followingCount, followerCount] = await Promise.all([
+      this.userFollowService.countFollowing(id),
+      this.userFollowService.countFollower(id),
+    ]);
+    const user = await this.service.getOne({
       filter: [
         {
           field: 'id',
@@ -76,6 +82,11 @@ export class UserController {
         },
       ],
     });
+    return {
+      ...user,
+      followingCount,
+      followerCount,
+    };
   }
 
   @ApiBearerAuth()

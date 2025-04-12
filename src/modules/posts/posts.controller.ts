@@ -83,10 +83,18 @@ export class PostsController {
     });
     const userFollow = await this.userFollowService.getAllFollower(user.id);
     userFollow.forEach(async (user) => {
+      const dataNoti = {
+        username: user.follower.username,
+        userId: user.follower.id,
+        postId: data.id,
+        postTitle: data.title,
+        avatarUrl: user.follower.profile_picture,
+        content: `${user.follower.username} vừa đăng bài viết mới!!`,
+      };
       await this.notiService.sendPushNotification(
         user.follower.token_device,
-        `${user.follower.username} vừa đăng bài viết mới!!`,
-        `${data.title}\n${data.description.slice(10)}`,
+        `📢 Thông báo mới`,
+        dataNoti,
         user.follower,
       );
     });
@@ -185,16 +193,6 @@ export class PostsController {
         imageUrl: urls,
       },
     );
-
-    const userFollow = await this.userFollowService.getAllFollower(user.id);
-    userFollow.forEach(async (user) => {
-      await this.notiService.sendPushNotification(
-        user.follower.token_device,
-        `${user.follower.username} vừa cập nhật bài viết!!`,
-        `${updatedPost.title}\n${updatedPost.description.slice(10)}`,
-        user.follower,
-      );
-    });
 
     return updatedPost;
   }
