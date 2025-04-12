@@ -6,10 +6,11 @@ import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ScheduleTask } from './entities/schedule-task.entity';
 import { UserPlants } from '../plant-user/entities/plant-user.entity';
 import { NotificationModule } from '../notification/notification.module';
+import { User } from '../user/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ScheduleRule, ScheduleTask, UserPlants]),
+    TypeOrmModule.forFeature([ScheduleRule, ScheduleTask, UserPlants, User]),
     NotificationModule,
   ],
   controllers: [SchedulesController],
