@@ -8,6 +8,7 @@ import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
 import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
 import { NotificationService } from '../notification/notification.service';
 import { User } from '../user/entities/user.entity';
+import { CurrentUser } from 'src/common/decorator/user.decorator';
 
 @Injectable()
 export class SchedulesService {
@@ -312,7 +313,8 @@ export class SchedulesService {
   }
 
   // Sinh thông báo cho các task từ 10-11 phút trước khi diễn ra
-  async generateUpcomingTaskNotifications() {
+  async generateUpcomingTaskNotifications(
+  ) {
     try {
       // Tìm các task từ 10-11 phút tới
       const tasks = await this.scheduleTaskRepo
@@ -325,7 +327,7 @@ export class SchedulesService {
         .andWhere('task.deletedAt IS NULL')
         .andWhere('TIMESTAMPDIFF(MINUTE, NOW(), task.scheduled_at) BETWEEN 10 AND 11')
         .getMany();
-
+  
       // Nếu không có task nào, ghi log và thoát
       if (tasks.length === 0) {
         this.logger.log('Không có task nào sắp diễn ra');
@@ -334,31 +336,37 @@ export class SchedulesService {
           totalNotifications: 0
         };
       }
-
+  
       // Xử lý và gửi thông báo cho từng task
       const notificationResults = [];
-
+  
       for (const task of tasks) {
         try {
           // Lấy thông tin người dùng
           const user = task.rule.user_plant.user;
-
+          
           // Lấy token thiết bị của người dùng
           const userDeviceToken = await this.getUserDeviceToken(user.id);
-
+          
           if (!userDeviceToken) {
             this.logger.warn(`Không tìm thấy device token cho user ${user.id}`);
             continue;
           }
-
+  
           // Gửi thông báo
           const notificationResult = await this.notificationService.sendPushNotification(
             userDeviceToken,
-            `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}`,
-            `Nhiệm vụ: ${task.task_name}. Sẽ diễn ra sau 10 phút. Chi tiết: ${task.notes || 'Không có ghi chú'}`,
+            'Nhắc nhở chăm sóc cây', // Tiêu đề thông báo
+            {
+              username: user.full_name, // Tên người dùng
+              userId: user.id,
+              content: `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}. Nhiệm vụ: ${task.task_name}. Chi tiết: ${task.notes || 'Không có ghi chú'}`,
+              postId: null, 
+              postTitle: null
+            },
             user
           );
-
+  
           notificationResults.push({
             taskId: task.id,
             userId: user.id,
@@ -368,9 +376,9 @@ export class SchedulesService {
           this.logger.error(`Lỗi khi xử lý thông báo cho task ${task.id}`, taskError);
         }
       }
-
+  
       this.logger.log(`Đã xử lý ${notificationResults.length} thông báo`);
-
+  
       return {
         message: 'Đã sinh thông báo cho các task sắp diễn ra',
         totalNotifications: notificationResults.length,

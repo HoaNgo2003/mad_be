@@ -5,6 +5,7 @@ import { PlantSearchHistory } from 'src/modules/plant-search-history/entities/pl
 import { PlantWishList } from 'src/modules/plant-wishlist/entities/plant-wishlist.entity';
 import { PostsComment } from 'src/modules/posts-comment/entities/posts-comment.entity';
 import { Posts } from 'src/modules/posts/entities/posts.entity';
+import { SearchHistory } from 'src/modules/search-history/entities/search-history.entity/search-history.entity';
 import { UserFollow } from 'src/modules/user-follow/entities/user-follow.entity';
 import { UserRefreshToken } from 'src/modules/user-refresh-token/entities/user-refresh-token.entity';
 import { UserVerifyAccount } from 'src/modules/user-verify-account/entities/user-verify-account.entity';
@@ -68,4 +69,8 @@ export class User extends BaseMySqlEntity {
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
+
+  @OneToMany(() => SearchHistory, searchHistory => searchHistory.user)
+  search_histories: SearchHistory[];
+
 }

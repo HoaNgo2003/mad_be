@@ -45,6 +45,8 @@ import { UserPlants } from './modules/plant-user/entities/plant-user.entity';
 import { PlantUserModule } from './modules/plant-user/plant-user.module';
 import { PostsShareModule } from './modules/posts-share/posts-share.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SearchHistory } from './modules/search-history/entities/search-history.entity/search-history.entity';
+import { SearchHistoryModule } from './modules/search-history/search-history.module';
 
 @Module({
   imports: [
@@ -77,6 +79,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         UserFollow,
         Notification,
         UserPlants,
+        SearchHistory
       ],
       synchronize: true,
       subscribers: [UserSubscriber],
@@ -103,6 +106,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     PlantUserModule,
     PostsShareModule,
     ScheduleModule.forRoot(),
+    SearchHistoryModule
   ],
   controllers: [AppController],
   providers: [
