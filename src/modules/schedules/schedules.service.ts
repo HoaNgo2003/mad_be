@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger  } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, MoreThan, Repository } from 'typeorm';
 import { ScheduleRule } from './entities/schedule-rule.entity';
@@ -29,7 +29,7 @@ export class SchedulesService {
     private readonly userRepo: Repository<User>,
 
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async createRule(data: CreateScheduleRuleDto) {
     const userPlant = await this.userPlantRepo.findOne({
@@ -274,7 +274,7 @@ export class SchedulesService {
   async generateDailyTasksForAllRules() {
     // 1. Lấy tất cả các quy tắc còn hoạt động
     const activeRules = await this.scheduleRuleRepo.find({
-      where: { 
+      where: {
         deletedAt: IsNull(),
         user_plant: {
           deletedAt: IsNull()
@@ -306,9 +306,9 @@ export class SchedulesService {
       }
     }
 
-    return { 
+    return {
       message: 'Đã hoàn tất quá trình sinh nhiệm vụ hằng ngày',
-      totalRulesProcessed: activeRules.length 
+      totalRulesProcessed: activeRules.length
     };
   }
 
@@ -327,7 +327,7 @@ export class SchedulesService {
         .andWhere('task.deletedAt IS NULL')
         .andWhere('TIMESTAMPDIFF(MINUTE, NOW(), task.scheduled_at) BETWEEN 10 AND 11')
         .getMany();
-  
+
       // Nếu không có task nào, ghi log và thoát
       if (tasks.length === 0) {
         this.logger.log('Không có task nào sắp diễn ra');
@@ -336,37 +336,42 @@ export class SchedulesService {
           totalNotifications: 0
         };
       }
-  
+
       // Xử lý và gửi thông báo cho từng task
       const notificationResults = [];
-  
+
       for (const task of tasks) {
         try {
           // Lấy thông tin người dùng
           const user = task.rule.user_plant.user;
-          
+
           // Lấy token thiết bị của người dùng
           const userDeviceToken = await this.getUserDeviceToken(user.id);
-          
+
           if (!userDeviceToken) {
             this.logger.warn(`Không tìm thấy device token cho user ${user.id}`);
             continue;
           }
-  
+
           // Gửi thông báo
+          const data = {
+            username: user.full_name, // Tên người dùng
+            userId: user.id,
+            postId: null,
+            postTitle: null,
+            avatarUrl: null,
+            commentId: null,
+            commentContent: null,
+            content: `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}. Nhiệm vụ: ${task.task_name}. Chi tiết: ${task.notes || 'Không có ghi chú'}`,
+          }
+          console.log(data);
           const notificationResult = await this.notificationService.sendPushNotification(
             userDeviceToken,
-            'Nhắc nhở chăm sóc cây', // Tiêu đề thông báo
-            {
-              username: user.full_name, // Tên người dùng
-              userId: user.id,
-              content: `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}. Nhiệm vụ: ${task.task_name}. Chi tiết: ${task.notes || 'Không có ghi chú'}`,
-              postId: null, 
-              postTitle: null
-            },
+            'Thông báo công việc', // Tiêu đề thông báo
+            data,
             user
           );
-  
+
           notificationResults.push({
             taskId: task.id,
             userId: user.id,
@@ -376,9 +381,9 @@ export class SchedulesService {
           this.logger.error(`Lỗi khi xử lý thông báo cho task ${task.id}`, taskError);
         }
       }
-  
+
       this.logger.log(`Đã xử lý ${notificationResults.length} thông báo`);
-  
+
       return {
         message: 'Đã sinh thông báo cho các task sắp diễn ra',
         totalNotifications: notificationResults.length,

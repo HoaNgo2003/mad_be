@@ -78,7 +78,7 @@ export class NotificationService extends BaseMySqlService<Notification> {
         await this.expo.sendPushNotificationsAsync([message]);
       const notiDto = {
         title,
-        JSON: JSON.stringify(body),
+        body: JSON.stringify(body),
         token,
         user,
       };
@@ -88,6 +88,24 @@ export class NotificationService extends BaseMySqlService<Notification> {
       console.error(' Error sending Expo push notification:', error);
       return { success: false, error: error.message };
     }
+  }
+
+  async markNotificationAsRead(notificationId: string) {
+    return this.updateOne(
+      {
+        filter: [
+          {
+            field: 'id',
+            operator: 'eq',
+            value: notificationId
+          }
+        ]
+      },
+      {
+        seen: true,
+        updatedAt: new Date()
+      }
+    );
   }
 
   // private scheduleNotifications() {
