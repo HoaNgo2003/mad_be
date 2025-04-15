@@ -42,10 +42,8 @@ export class PlantWishlistController {
   @Delete('/remove/:id')
   @ApiOperation({ summary: 'Remove a plant from wishlist' })
   @HttpCode(HttpStatus.OK)
-  async removeFromWishList(@Param('id') id: string) {
-    return this.plantWishlistService.hardDeleteOne({
-      filter: [{ field: 'id', operator: 'eq', value: id }],
-    });
+  async removeFromWishList(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.plantWishlistService.removeFromWishList(user.id, id);
   }
 
   @ApiBearerAuth()
