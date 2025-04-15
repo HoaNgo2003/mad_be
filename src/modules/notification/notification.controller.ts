@@ -10,11 +10,11 @@ import { User } from '../user/entities/user.entity';
   path: 'expo',
 })
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) { }
+  constructor(private readonly notificationService: NotificationService) {}
 
   @ApiBearerAuth()
   @Get('')
-  @ApiOperation({ summary: 'Get all notification' })
+  @ApiOperation({ summary: 'Get all notification of current user' })
   async getAllNotification(@CurrentUser() user: User) {
     console.log(user);
     const data = await this.notificationService.getMany({

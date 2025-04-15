@@ -14,7 +14,6 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 export class NotificationService extends BaseMySqlService<Notification> {
   private readonly expo: Expo;
   private token: string | null = null;
-  private isScheduled = false;
   constructor(
     @InjectRepository(Notification)
     private readonly repo: Repository<Notification>,
@@ -23,25 +22,6 @@ export class NotificationService extends BaseMySqlService<Notification> {
     super(repo);
     this.expo = new Expo();
   }
-
-  // scheduleTaskNotification(
-  //   task: ScheduleTask,
-  //   token_device: string,
-  //   user: User,
-  // ) {
-  //   const job = new CronJob(task.scheduled_at, async () => {
-  //     await this.sendPushNotification(
-  //       token_device,
-  //       task.task_name,
-  //       task.notes,
-  //       user,
-  //     );
-  //   });
-
-  //   const jobName = `task-notify-${task.id}`;
-  //   this.schedulerRegistry.addCronJob(jobName, job as any);
-  //   job.start();
-  // }
 
   async sendPushNotification(
     token: string,
@@ -65,7 +45,7 @@ export class NotificationService extends BaseMySqlService<Notification> {
 
     this.token = token;
     console.log(' Sending notification now...');
-
+    console.log(' Token:', token);
     const message: ExpoPushMessage = {
       to: token,
       sound: 'default',
@@ -97,38 +77,14 @@ export class NotificationService extends BaseMySqlService<Notification> {
           {
             field: 'id',
             operator: 'eq',
-            value: notificationId
-          }
-        ]
+            value: notificationId,
+          },
+        ],
       },
       {
         seen: true,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     );
   }
-
-  // private scheduleNotifications() {
-  //   if (!this.token || this.isScheduled) return;
-
-  //   this.isScheduled = true;
-  //   const now = new Date();
-  //   now.setMinutes(now.getMinutes() + 2);
-
-  //   const minute = now.getMinutes();
-  //   const hour = now.getHours();
-
-  //   const scheduleTime = `${minute} ${hour} * * *`;
-
-  //   cron.schedule(scheduleTime, async () => {
-  //     if (this.token) {
-  //       await this.sendPushNotification(
-  //         this.token,
-  //         ' Reminder!',
-  //         'This notification was scheduled 5 minutes ago!',
-  //         new User(),
-  //       );
-  //     }
-  //   });
-  // }
 }

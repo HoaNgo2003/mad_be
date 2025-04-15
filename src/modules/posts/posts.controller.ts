@@ -82,22 +82,23 @@ export class PostsController {
       user,
     });
     const userFollow = await this.userFollowService.getAllFollower(user.id);
-    userFollow.forEach(async (user) => {
+
+    for (const userData of userFollow) {
       const dataNoti = {
-        username: user.follower.username,
-        userId: user.follower.id,
+        username: user.username,
+        userId: user.id,
         postId: data.id,
         postTitle: data.title,
-        avatarUrl: user.follower.profile_picture,
-        content: `${user.follower.username} vừa đăng bài viết mới!!`,
+        avatarUrl: user.profile_picture,
+        content: `${user.username} vừa đăng bài viết mới!!`,
       };
       await this.notiService.sendPushNotification(
-        user.follower.token_device,
+        userData.follower.token_device,
         `📢 Thông báo mới`,
         dataNoti,
-        user.follower,
+        userData.follower,
       );
-    });
+    }
     return data;
   }
 
