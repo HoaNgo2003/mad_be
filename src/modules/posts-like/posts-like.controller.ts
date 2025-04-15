@@ -54,12 +54,7 @@ export class PostsLikeController {
             },
           ],
         });
-        await this.notiService.sendPushNotification(
-          posts.user.token_device,
-          `new notification`,
-          '${user.username} just unliked your post!!!',
-          posts.user,
-        );
+
         return {
           message: 'You had unliked this post!',
         };
@@ -69,13 +64,22 @@ export class PostsLikeController {
         type: EReact.like,
         posts,
       });
-
-      await this.notiService.sendPushNotification(
-        posts.user.token_device,
-        `new notification`,
-        '${user.username} just liked your post!!!',
-        posts.user,
-      );
+      const data = {
+        username: user.username,
+        postId: posts.id,
+        postTitle: posts.title,
+        userId: user.id,
+        avatarUrl: user.profile_picture,
+        content: `${user.username} đã thích bài viết của bạn`,
+      };
+      if (user.id !== posts.user.id) {
+        await this.notiService.sendPushNotification(
+          posts.user.token_device,
+          `📢 Thông báo mới`,
+          data,
+          posts.user,
+        );
+      }
       return {
         message: 'You had liked this post!',
       };

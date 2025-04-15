@@ -51,10 +51,16 @@ export class UserFollowController {
       follower: user,
       following: following,
     });
+    const dataNoti = {
+      username: user.username,
+      userId: user.id,
+      avatarUrl: user.profile_picture,
+      content: `${user.username} mới theo dõi bạn!!!`,
+    };
     await this.notiService.sendPushNotification(
       following.token_device,
-      `new notification`,
-      `${user.username} just followed you!!!`,
+      `📢 Thông báo mới`,
+      dataNoti,
       following,
     );
     return data;
@@ -74,12 +80,7 @@ export class UserFollowController {
         },
       ],
     });
-    await this.notiService.sendPushNotification(
-      following.token_device,
-      `new notification`,
-      `${user.username} just unfollowed you!!!`,
-      following,
-    );
+
     return data;
   }
 

@@ -1,5 +1,6 @@
 import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
 import { User } from 'src/modules/user/entities/user.entity';
+import { json } from 'stream/consumers';
 import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'notification' })
@@ -7,7 +8,7 @@ export class Notification extends BaseMySqlEntity {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ type: 'json' })
   body: string;
 
   @Column()

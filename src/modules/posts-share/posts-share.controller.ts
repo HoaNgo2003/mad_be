@@ -42,12 +42,23 @@ export class PostsShareController {
         user_id: user.id,
         posts,
       });
-      await this.notiService.sendPushNotification(
-        posts.user.token_device,
-        `new notification`,
-        '${user.username} just shared your post!!!',
-        posts.user,
-      );
+      if (posts.user.id !== user.id) {
+        const data = {
+          username: user.username,
+          userId: user.id,
+          postId: posts.id,
+          postTitle: posts.title,
+          avatarUrl: user.profile_picture,
+          content: `${user.username} đã chia sẻ bài viết của bạn!!!`,
+        };
+        await this.notiService.sendPushNotification(
+          posts.user.token_device,
+          `📢 Thông báo mới`,
+          data,
+          posts.user,
+        );
+      }
+
       return {
         message: 'You had shared this post!',
       };

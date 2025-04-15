@@ -13,6 +13,7 @@ import { SchedulesService } from './schedules.service';
 import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
 import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Controller({
   version: '1',
@@ -99,4 +100,70 @@ export class SchedulesController {
   async getTasks() {
     return this.schedulesService.getTasks();
   }
+
+
+  // Gen daily task
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleDailyTaskGeneration() {
+    await this.schedulesService.generateDailyTasksForAllRules();
+  }
+
+  // Chạy mỗi 1 phút để kiểm tra và gửi thông báo
+  @Cron(CronExpression.EVERY_MINUTE)
+  async handleTaskNotifications() {
+    try {
+      // 1. Sinh task mới nếu cần
+      // await this.schedulesService.generateDailyTasksForAllRules();
+      
+      // 2. Gửi thông báo cho các task sắp diễn ra
+      await this.schedulesService.generateUpcomingTaskNotifications();
+    } catch (error) {
+      console.error('Lỗi trong quy trình xử lý task:', error);
+    }
+  }
+
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Test daily process gen task' })
+  @Post('/generate-daily-tasks')
+  async manualGenerateDailyTasks() {
+    try {
+      // Gọi phương thức sinh nhiệm vụ hằng ngày
+      const result = await this.schedulesService.generateDailyTasksForAllRules();
+      
+      return {
+        success: true,
+        message: 'Thành công',
+        details: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Lỗi khi sinh nhiệm vụ',
+        error: error.message
+      };
+    }
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Test process push notification per minute' })
+  @Post('/send-notifications')
+  async manualSendNotifications() {
+    try {
+      const result = await this.schedulesService.generateUpcomingTaskNotifications();
+      return {
+        success: true,
+        message: 'Đã gửi thông báo thành công',
+        details: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Lỗi khi gửi thông báo',
+        error: error.message
+      };
+    }
+  }
+
+
 }

@@ -10,7 +10,7 @@ import { User } from '../user/entities/user.entity';
   path: 'expo',
 })
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(private readonly notificationService: NotificationService) { }
 
   @ApiBearerAuth()
   @Get('')
@@ -101,5 +101,12 @@ export class NotificationController {
         },
       ],
     });
+  }
+
+  @ApiBearerAuth()
+  @Post('read-notification/:id')
+  @ApiOperation({ summary: 'Seen notification' })
+  async readNotification(@Param('id') id: string) {
+    return this.notificationService.markNotificationAsRead(id);
   }
 }

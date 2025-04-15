@@ -1,15 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, MoreThan, Repository } from 'typeorm';
 import { ScheduleRule } from './entities/schedule-rule.entity';
 import { ScheduleTask } from './entities/schedule-task.entity';
 import { UserPlants } from '../plant-user/entities/plant-user.entity';
 import { CreateScheduleRuleDto } from './dtos/create-schedule-rule.dto';
 import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
 import { NotificationService } from '../notification/notification.service';
+import { User } from '../user/entities/user.entity';
+import { CurrentUser } from 'src/common/decorator/user.decorator';
 
 @Injectable()
 export class SchedulesService {
+
+  private readonly logger = new Logger(SchedulesService.name);
+
   constructor(
     @InjectRepository(ScheduleRule)
     private readonly scheduleRuleRepo: Repository<ScheduleRule>,
@@ -19,8 +24,12 @@ export class SchedulesService {
 
     @InjectRepository(UserPlants)
     private readonly userPlantRepo: Repository<UserPlants>,
+
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async createRule(data: CreateScheduleRuleDto) {
     const userPlant = await this.userPlantRepo.findOne({
@@ -259,5 +268,147 @@ export class SchedulesService {
     }
 
     return this.scheduleTaskRepo.save(tasksToInsert);
+  }
+
+  // ✅ Sinh nhiệm vụ hằng ngày cho tất cả các quy tắc
+  async generateDailyTasksForAllRules() {
+    // 1. Lấy tất cả các quy tắc còn hoạt động
+    const activeRules = await this.scheduleRuleRepo.find({
+      where: {
+        deletedAt: IsNull(),
+        user_plant: {
+          deletedAt: IsNull()
+        }
+      },
+      relations: ['user_plant', 'user_plant.plant']
+    });
+
+    // 2. Duyệt qua từng quy tắc và sinh nhiệm vụ
+    for (const rule of activeRules) {
+      try {
+        // Kiểm tra số lượng nhiệm vụ chưa hoàn thành và trong tương lai
+        const futureTasksCount = await this.scheduleTaskRepo.count({
+          where: {
+            rule: { id: rule.id },
+            status: 'pending',
+            scheduled_at: MoreThan(new Date()),
+            deletedAt: IsNull()
+          }
+        });
+
+        // Nếu số lượng nhiệm vụ trong tương lai < 3, sinh thêm nhiệm vụ
+        if (futureTasksCount < 3) {
+          await this.generateTasksForRule(rule.id);
+        }
+      } catch (error) {
+        // Ghi log lỗi nếu không thể sinh nhiệm vụ cho một quy tắc cụ thể
+        console.error(`Lỗi khi sinh nhiệm vụ cho rule ${rule.id}:`, error);
+      }
+    }
+
+    return {
+      message: 'Đã hoàn tất quá trình sinh nhiệm vụ hằng ngày',
+      totalRulesProcessed: activeRules.length
+    };
+  }
+
+  // Sinh thông báo cho các task từ 10-11 phút trước khi diễn ra
+  async generateUpcomingTaskNotifications(
+  ) {
+    try {
+      // Tìm các task từ 10-11 phút tới
+      const tasks = await this.scheduleTaskRepo
+        .createQueryBuilder('task')
+        .leftJoinAndSelect('task.rule', 'rule')
+        .leftJoinAndSelect('rule.user_plant', 'user_plant')
+        .leftJoinAndSelect('user_plant.user', 'user')
+        .leftJoinAndSelect('user_plant.plant', 'plant')
+        .where('task.status = :status', { status: 'pending' })
+        .andWhere('task.deletedAt IS NULL')
+        .andWhere('TIMESTAMPDIFF(MINUTE, NOW(), task.scheduled_at) BETWEEN 10 AND 11')
+        .getMany();
+
+      // Nếu không có task nào, ghi log và thoát
+      if (tasks.length === 0) {
+        this.logger.log('Không có task nào sắp diễn ra');
+        return {
+          message: 'Không có task nào sắp diễn ra',
+          totalNotifications: 0
+        };
+      }
+
+      // Xử lý và gửi thông báo cho từng task
+      const notificationResults = [];
+
+      for (const task of tasks) {
+        try {
+          // Lấy thông tin người dùng
+          const user = task.rule.user_plant.user;
+
+          // Lấy token thiết bị của người dùng
+          const userDeviceToken = await this.getUserDeviceToken(user.id);
+
+          if (!userDeviceToken) {
+            this.logger.warn(`Không tìm thấy device token cho user ${user.id}`);
+            continue;
+          }
+
+          // Gửi thông báo
+          const data = {
+            username: user.full_name, // Tên người dùng
+            userId: user.id,
+            postId: null,
+            postTitle: null,
+            avatarUrl: null,
+            commentId: null,
+            commentContent: null,
+            content: `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}. Nhiệm vụ: ${task.task_name}. Chi tiết: ${task.notes || 'Không có ghi chú'}`,
+          }
+          console.log(data);
+          const notificationResult = await this.notificationService.sendPushNotification(
+            userDeviceToken,
+            'Thông báo công việc', // Tiêu đề thông báo
+            data,
+            user
+          );
+
+          notificationResults.push({
+            taskId: task.id,
+            userId: user.id,
+            success: notificationResult.success
+          });
+        } catch (taskError) {
+          this.logger.error(`Lỗi khi xử lý thông báo cho task ${task.id}`, taskError);
+        }
+      }
+
+      this.logger.log(`Đã xử lý ${notificationResults.length} thông báo`);
+
+      return {
+        message: 'Đã sinh thông báo cho các task sắp diễn ra',
+        totalNotifications: notificationResults.length,
+        results: notificationResults
+      };
+    } catch (error) {
+      this.logger.error('Lỗi khi sinh thông báo task', error);
+      throw error;
+    }
+  }
+
+  // Lấy device token của người dùng
+  private async getUserDeviceToken(userId: string): Promise<string | null> {
+    try {
+      // TODO: Implement logic lấy device token
+      // Ví dụ: truy vấn từ bảng user hoặc bảng device token
+      const user = await this.userRepo.findOne({
+        where: { id: userId },
+        select: ['token_device']
+      });
+
+      return user?.token_device || null;
+    } catch (error) {
+      this.logger.error(`Lỗi khi lấy device token cho user ${userId}`, error);
+      return null;
+    }
   }
 }

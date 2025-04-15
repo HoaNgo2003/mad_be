@@ -34,6 +34,8 @@ import { UploadService } from '../upload/upload.service';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { PlantSearchHistoryService } from '../plant-search-history/plant-search-history.service';
+import { log } from 'console';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Plant')
 @Controller({
@@ -80,27 +82,49 @@ export class PlantController {
     return this.plantService.getMany(parsed);
   }
 
-  @Public()
-  @ApiOperation({
-    summary: 'Get one plants by id',
-  })
-  @Get('/:id')
-  @HttpCode(HttpStatus.OK)
-  async getOne(
-    @ParsedRequest() req: CrudRequest,
-    @Param() paramId: ParamIdPlantDto,
-  ) {
-    const { parsed } = req;
-    parsed.filter = [
-      ...parsed.filter,
+@ApiBearerAuth()
+@ApiOperation({
+  summary: 'Get one plants by id',
+})
+@Get('/:id')
+@HttpCode(HttpStatus.OK)
+async getOne(
+  @CurrentUser() user: User,
+  @ParsedRequest() req: CrudRequest,
+  @Param() paramId: ParamIdPlantDto,
+) {
+  const { parsed } = req;
+  
+  // Thêm filter để tìm cây theo ID
+  parsed.filter = [
+    ...parsed.filter,
+    {
+      field: 'id',
+      operator: 'eq',
+      value: paramId.id,
+    },
+  ];
+
+  // Lấy thông tin cây
+  const plant = await this.plantService.getOne(parsed);
+
+  // Lưu lịch sử tìm kiếm 
+  if (user) {
+    await this.searchHistoryService.createPlantSearchHistory(
+      user.id,
       {
-        field: 'id',
-        operator: 'eq',
-        value: paramId.id,
-      },
-    ];
-    return this.plantService.getOne(parsed);
+        keyword: 'Chi tiết cây',
+        plantId: plant.id
+      }
+    );
+    
+    console.log('Lưu lịch sử tìm kiếm cây');
   }
+
+  
+
+  return plant;
+}
 
   @Public()
   @Post()
@@ -206,13 +230,6 @@ export class PlantController {
       searchHistoryDto.plant_url = url;
     }
 
-    await this.searchHistoryService.createOne(searchHistoryDto);
-    if (dto?.name) {
-      parsed.filter = [
-        ...parsed.filter,
-        { field: 'name', operator: 'cont', value: dto.name },
-      ];
-    }
     if (dto?.plant_google_name) {
       parsed.filter = [
         ...parsed.filter,
