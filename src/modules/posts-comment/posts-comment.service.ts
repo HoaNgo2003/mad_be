@@ -19,7 +19,6 @@ export class PostsCommentService extends BaseMySqlService<PostsComment> {
     postId: string,
     parentId?: string,
   ): Promise<PostsComment> {
-    console.log(postId, parentId, userId, content);
     const comment = this.createOne({
       content,
       user: { id: userId } as any,

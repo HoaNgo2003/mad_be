@@ -41,4 +41,7 @@ export class Posts extends BaseMySqlEntity {
   })
   @JoinColumn({ name: 'post_user' })
   user: User;
+
+  @Column({ default: 0 })
+  ranking: number;
 }

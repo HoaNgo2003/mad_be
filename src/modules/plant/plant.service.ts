@@ -7,6 +7,7 @@ import { CreatePlantDto } from './dtos/create-plants.dto';
 import { PlantBenefitService } from '../plant-benefit/plan-benefit.service';
 import { UpdatePlantDto } from './dtos/update-plants.dto';
 import { PlantCareProcessService } from '../plant-care-process/plant-care-process.service';
+import { CategoryService } from '../category/category.service';
 
 @Injectable()
 export class PlantService extends BaseMySqlService<Plant> {
@@ -15,6 +16,7 @@ export class PlantService extends BaseMySqlService<Plant> {
     private readonly repo: Repository<Plant>,
     private readonly plantBenefitService: PlantBenefitService,
     private readonly plantProcessService: PlantCareProcessService,
+    private readonly categoryService: CategoryService,
   ) {
     super(repo);
   }
@@ -22,6 +24,9 @@ export class PlantService extends BaseMySqlService<Plant> {
   async createOnePlant(dto: CreatePlantDto) {
     let plant_benefits = [];
     let plant_processes = [];
+    const category = await this.categoryService.getOne({
+      filter: [{ field: 'id', operator: 'eq', value: dto.category_id }],
+    });
     if (dto.plant_benefits) {
       plant_benefits = dto.plant_benefits;
       delete dto.plant_benefits;
@@ -30,7 +35,11 @@ export class PlantService extends BaseMySqlService<Plant> {
       plant_processes = dto.plant_processes;
       delete dto.plant_processes;
     }
-    const plant = await this.createOne(dto);
+
+    const plant = await this.createOne({
+      ...dto,
+      category,
+    });
     const dataProcess =
       await this.plantProcessService.createManyPlantCareProcesses(
         plant_processes,
@@ -52,7 +61,9 @@ export class PlantService extends BaseMySqlService<Plant> {
   async updateOnePlant(dto: UpdatePlantDto, id: string) {
     let plant_benefits = [];
     let plant_processes = [];
-
+    const category = await this.categoryService.getOne({
+      filter: [{ field: 'id', operator: 'eq', value: dto.category_id }],
+    });
     if (dto.plant_benefits) {
       plant_benefits = dto.plant_benefits;
       delete dto.plant_benefits;
@@ -68,7 +79,10 @@ export class PlantService extends BaseMySqlService<Plant> {
       {
         filter: [{ field: 'id', operator: 'eq', value: id }],
       },
-      dto,
+      {
+        ...dto,
+        category,
+      },
     );
 
     // Step 2: Update/Create Plant Benefits
@@ -140,5 +154,21 @@ export class PlantService extends BaseMySqlService<Plant> {
     }
 
     return createdPlants;
+  }
+  async getPlantByCategory(id: string) {
+    return this.getMany({
+      filter: [
+        {
+          field: 'category.id',
+          operator: 'eq',
+          value: id,
+        },
+      ],
+      join: [
+        { field: 'plant_benefits' },
+        { field: 'plant_processes' },
+        { field: 'category' },
+      ],
+    });
   }
 }

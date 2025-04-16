@@ -23,11 +23,9 @@ export class AuthService {
       return null;
     }
     const isPasswordMatching = await bcrypt.compare(password, user.password);
-    console.log(isPasswordMatching);
     if (!isPasswordMatching) {
       return null;
     }
-    console.log(user);
 
     delete user.password;
     return user;

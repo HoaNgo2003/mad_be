@@ -17,6 +17,7 @@ import {
   CreatePostCommentDto,
   UpdatePostCommentDto,
 } from './dtos/create-comment.dto';
+import { ETypeNoti } from 'src/common/types/data-type';
 
 @ApiTags('Posts-Comments')
 @Controller({
@@ -67,6 +68,7 @@ export class PostsCommentController {
         commentId: newComment.id,
         commentContent: newComment.content,
         content: `${user.username} đã bình luận vào bài viết của bạn.`,
+        type: ETypeNoti.comment,
       };
       await this.notiService.sendPushNotification(
         post.user.token_device,
@@ -89,6 +91,7 @@ export class PostsCommentController {
         commentId: newComment.id,
         commentContent: newComment.content,
         content: `${user.username} đã trả lời bình luận của bạn.`,
+        type: ETypeNoti.reply,
       };
       await this.notiService.sendPushNotification(
         parentComment.user.token_device,

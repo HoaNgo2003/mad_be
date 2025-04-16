@@ -24,6 +24,11 @@ export class CreatePlantDto {
   @IsNotEmpty()
   description: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @IsDefined()
+  category_id: string;
+
   @IsOptional()
   file?: any;
 

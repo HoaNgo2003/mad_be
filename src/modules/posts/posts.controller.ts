@@ -26,15 +26,14 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { CrudRequest, ParsedRequest } from '@dataui/crud';
 import { Public } from 'src/common/decorator/public.decorator';
 import { PostsLikeService } from '../posts-like/posts-like.service';
 import { NotificationService } from '../notification/notification.service';
 import { UpdatePostDto } from './dtos/update-post.dto';
-import { EReact } from 'src/common/types/data-type';
 import { PostsShareService } from '../posts-share/posts-share.service';
 import { UserIdDto } from '../user-follow/dtos/paramUserId.dto';
 import { UsersService } from '../user/user.service';
+import { ETypeNoti } from 'src/common/types/data-type';
 
 @ApiTags('Posts')
 @Controller({
@@ -91,6 +90,7 @@ export class PostsController {
         postTitle: data.title,
         avatarUrl: user.profile_picture,
         content: `${user.username} vừa đăng bài viết mới!!`,
+        type: ETypeNoti.post,
       };
       await this.notiService.sendPushNotification(
         userData.follower.token_device,

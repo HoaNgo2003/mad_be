@@ -24,7 +24,11 @@ import { Public } from 'src/common/decorator/public.decorator';
 import { Plant } from './entities/plant.entity';
 import { Swagger } from '@dataui/crud/lib/crud';
 import { CrudRequest, ParsedRequest } from '@dataui/crud';
-import { ParamIdPlantBenefitDto, ParamIdPlantDto } from './dtos/paramId.dto';
+import {
+  ParamIdCategory,
+  ParamIdPlantBenefitDto,
+  ParamIdPlantDto,
+} from './dtos/paramId.dto';
 import { UpdatePlantDto } from './dtos/update-plants.dto';
 import { PlantBenefitService } from '../plant-benefit/plan-benefit.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -34,8 +38,6 @@ import { UploadService } from '../upload/upload.service';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { PlantSearchHistoryService } from '../plant-search-history/plant-search-history.service';
-import { log } from 'console';
-import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Plant')
 @Controller({
@@ -79,52 +81,48 @@ export class PlantController {
   async getMany(@ParsedRequest() req: CrudRequest) {
     const { parsed } = req;
     parsed.filter = [...parsed.filter];
+    parsed.limit = 10;
     return this.plantService.getMany(parsed);
   }
 
-@ApiBearerAuth()
-@ApiOperation({
-  summary: 'Get one plants by id',
-})
-@Get('/:id')
-@HttpCode(HttpStatus.OK)
-async getOne(
-  @CurrentUser() user: User,
-  @ParsedRequest() req: CrudRequest,
-  @Param() paramId: ParamIdPlantDto,
-) {
-  const { parsed } = req;
-  
-  // Thêm filter để tìm cây theo ID
-  parsed.filter = [
-    ...parsed.filter,
-    {
-      field: 'id',
-      operator: 'eq',
-      value: paramId.id,
-    },
-  ];
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get one plants by id',
+  })
+  @Get('/:id')
+  @HttpCode(HttpStatus.OK)
+  async getOne(
+    @CurrentUser() user: User,
+    @ParsedRequest() req: CrudRequest,
+    @Param() paramId: ParamIdPlantDto,
+  ) {
+    const { parsed } = req;
 
-  // Lấy thông tin cây
-  const plant = await this.plantService.getOne(parsed);
-
-  // Lưu lịch sử tìm kiếm 
-  if (user) {
-    await this.searchHistoryService.createPlantSearchHistory(
-      user.id,
+    // Thêm filter để tìm cây theo ID
+    parsed.filter = [
+      ...parsed.filter,
       {
+        field: 'id',
+        operator: 'eq',
+        value: paramId.id,
+      },
+    ];
+
+    // Lấy thông tin cây
+    const plant = await this.plantService.getOne(parsed);
+
+    // Lưu lịch sử tìm kiếm
+    if (user) {
+      await this.searchHistoryService.createPlantSearchHistory(user.id, {
         keyword: 'Chi tiết cây',
-        plantId: plant.id
-      }
-    );
-    
-    console.log('Lưu lịch sử tìm kiếm cây');
+        plantId: plant.id,
+      });
+
+      console.log('Lưu lịch sử tìm kiếm cây');
+    }
+
+    return plant;
   }
-
-  
-
-  return plant;
-}
 
   @Public()
   @Post()
@@ -148,6 +146,7 @@ async getOne(
       properties: {
         name: { type: 'string' },
         description: { type: 'string' },
+        category_id: { type: 'string' },
         file: { type: 'string', format: 'binary' },
         plant_benefits: {
           type: 'string',
@@ -171,13 +170,6 @@ async getOne(
     }
     return this.plantService.createOnePlant(dto);
   }
-
-  // @Public()
-  // @Post('/create-bulk-plan')
-  // @ApiOperation({ summary: 'Create many plant with benefits' })
-  // async createBulkPlant(@Body() dto: CreateBulkPlantDto) {
-  //   return this.plantService.createBulkPlants(dto.plants);
-  // }
 
   @Public()
   @Post('/benefits/plant-name')
@@ -242,11 +234,12 @@ async getOne(
       { field: 'plant_benefits' },
       { field: 'plant_processes' },
     ];
+    parsed.limit = 10;
     return this.plantService.getMany(parsed);
   }
 
   @Public()
-  @Post('/process/plant-name')
+  @Post('process/plant-name')
   @ApiOperation({ summary: 'get process by plan name' })
   async getProcessByPlanName(
     @ParsedRequest() req: CrudRequest,
@@ -262,7 +255,7 @@ async getOne(
   }
 
   @Public()
-  @Delete('/delete-plant-benefit/:id')
+  @Delete('delete-plant-benefit/:id')
   async deleteOnePlantBenefit(@Param() param: ParamIdPlantBenefitDto) {
     return this.plantBenefitService.hardDeleteOne({
       filter: [
@@ -297,5 +290,12 @@ async getOne(
     @Body() dto: UpdatePlantDto,
   ) {
     return this.plantService.updateOnePlant(dto, param.id);
+  }
+
+  @Public()
+  @Get('plant-by-category/:id')
+  @ApiOperation({ summary: 'Get plant by category' })
+  async getPlantByCategory(@Param() param: ParamIdCategory) {
+    return this.plantService.getPlantByCategory(param.id);
   }
 }

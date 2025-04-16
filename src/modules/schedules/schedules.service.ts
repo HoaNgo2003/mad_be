@@ -9,10 +9,10 @@ import { UpdateScheduleRuleDto } from './dtos/update-schedule-rule.dto';
 import { NotificationService } from '../notification/notification.service';
 import { User } from '../user/entities/user.entity';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
+import { ETypeNoti } from 'src/common/types/data-type';
 
 @Injectable()
 export class SchedulesService {
-
   private readonly logger = new Logger(SchedulesService.name);
 
   constructor(
@@ -29,7 +29,7 @@ export class SchedulesService {
     private readonly userRepo: Repository<User>,
 
     private readonly notificationService: NotificationService,
-  ) { }
+  ) {}
 
   async createRule(data: CreateScheduleRuleDto) {
     const userPlant = await this.userPlantRepo.findOne({
@@ -277,10 +277,10 @@ export class SchedulesService {
       where: {
         deletedAt: IsNull(),
         user_plant: {
-          deletedAt: IsNull()
-        }
+          deletedAt: IsNull(),
+        },
       },
-      relations: ['user_plant', 'user_plant.plant']
+      relations: ['user_plant', 'user_plant.plant'],
     });
 
     // 2. Duyệt qua từng quy tắc và sinh nhiệm vụ
@@ -292,8 +292,8 @@ export class SchedulesService {
             rule: { id: rule.id },
             status: 'pending',
             scheduled_at: MoreThan(new Date()),
-            deletedAt: IsNull()
-          }
+            deletedAt: IsNull(),
+          },
         });
 
         // Nếu số lượng nhiệm vụ trong tương lai < 3, sinh thêm nhiệm vụ
@@ -308,13 +308,12 @@ export class SchedulesService {
 
     return {
       message: 'Đã hoàn tất quá trình sinh nhiệm vụ hằng ngày',
-      totalRulesProcessed: activeRules.length
+      totalRulesProcessed: activeRules.length,
     };
   }
 
   // Sinh thông báo cho các task từ 10-11 phút trước khi diễn ra
-  async generateUpcomingTaskNotifications(
-  ) {
+  async generateUpcomingTaskNotifications() {
     try {
       // Tìm các task từ 10-11 phút tới
       const tasks = await this.scheduleTaskRepo
@@ -325,7 +324,9 @@ export class SchedulesService {
         .leftJoinAndSelect('user_plant.plant', 'plant')
         .where('task.status = :status', { status: 'pending' })
         .andWhere('task.deletedAt IS NULL')
-        .andWhere('TIMESTAMPDIFF(MINUTE, NOW(), task.scheduled_at) BETWEEN 10 AND 11')
+        .andWhere(
+          'TIMESTAMPDIFF(MINUTE, NOW(), task.scheduled_at) BETWEEN 10 AND 11',
+        )
         .getMany();
 
       // Nếu không có task nào, ghi log và thoát
@@ -333,7 +334,7 @@ export class SchedulesService {
         this.logger.log('Không có task nào sắp diễn ra');
         return {
           message: 'Không có task nào sắp diễn ra',
-          totalNotifications: 0
+          totalNotifications: 0,
         };
       }
 
@@ -363,22 +364,26 @@ export class SchedulesService {
             commentId: null,
             commentContent: null,
             content: `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}. Nhiệm vụ: ${task.task_name}. Chi tiết: ${task.notes || 'Không có ghi chú'}`,
-          }
-          console.log(data);
-          const notificationResult = await this.notificationService.sendPushNotification(
-            userDeviceToken,
-            'Thông báo công việc', // Tiêu đề thông báo
-            data,
-            user
-          );
+            type: ETypeNoti.task,
+          };
+          const notificationResult =
+            await this.notificationService.sendPushNotification(
+              userDeviceToken,
+              'Thông báo công việc', // Tiêu đề thông báo
+              data,
+              user,
+            );
 
           notificationResults.push({
             taskId: task.id,
             userId: user.id,
-            success: notificationResult.success
+            success: notificationResult.success,
           });
         } catch (taskError) {
-          this.logger.error(`Lỗi khi xử lý thông báo cho task ${task.id}`, taskError);
+          this.logger.error(
+            `Lỗi khi xử lý thông báo cho task ${task.id}`,
+            taskError,
+          );
         }
       }
 
@@ -387,7 +392,7 @@ export class SchedulesService {
       return {
         message: 'Đã sinh thông báo cho các task sắp diễn ra',
         totalNotifications: notificationResults.length,
-        results: notificationResults
+        results: notificationResults,
       };
     } catch (error) {
       this.logger.error('Lỗi khi sinh thông báo task', error);
@@ -402,7 +407,7 @@ export class SchedulesService {
       // Ví dụ: truy vấn từ bảng user hoặc bảng device token
       const user = await this.userRepo.findOne({
         where: { id: userId },
-        select: ['token_device']
+        select: ['token_device'],
       });
 
       return user?.token_device || null;

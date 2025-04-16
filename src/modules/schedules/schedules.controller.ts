@@ -101,7 +101,6 @@ export class SchedulesController {
     return this.schedulesService.getTasks();
   }
 
-
   // Gen daily task
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleDailyTaskGeneration() {
@@ -114,7 +113,7 @@ export class SchedulesController {
     try {
       // 1. Sinh task mới nếu cần
       // await this.schedulesService.generateDailyTasksForAllRules();
-      
+
       // 2. Gửi thông báo cho các task sắp diễn ra
       await this.schedulesService.generateUpcomingTaskNotifications();
     } catch (error) {
@@ -122,25 +121,25 @@ export class SchedulesController {
     }
   }
 
-
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Test daily process gen task' })
   @Post('/generate-daily-tasks')
   async manualGenerateDailyTasks() {
     try {
       // Gọi phương thức sinh nhiệm vụ hằng ngày
-      const result = await this.schedulesService.generateDailyTasksForAllRules();
-      
+      const result =
+        await this.schedulesService.generateDailyTasksForAllRules();
+
       return {
         success: true,
         message: 'Thành công',
-        details: result
+        details: result,
       };
     } catch (error) {
       return {
         success: false,
         message: 'Lỗi khi sinh nhiệm vụ',
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -150,20 +149,19 @@ export class SchedulesController {
   @Post('/send-notifications')
   async manualSendNotifications() {
     try {
-      const result = await this.schedulesService.generateUpcomingTaskNotifications();
+      const result =
+        await this.schedulesService.generateUpcomingTaskNotifications();
       return {
         success: true,
         message: 'Đã gửi thông báo thành công',
-        details: result
+        details: result,
       };
     } catch (error) {
       return {
         success: false,
         message: 'Lỗi khi gửi thông báo',
-        error: error.message
+        error: error.message,
       };
     }
   }
-
-
 }

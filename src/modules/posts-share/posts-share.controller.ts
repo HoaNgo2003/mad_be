@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
 
-import { EReact } from 'src/common/types/data-type';
+import { EReact, ETypeNoti } from 'src/common/types/data-type';
 
 import { PostsService } from '../posts/posts.service';
 import { ErrorMessage } from 'src/common/error-message';
@@ -50,6 +50,7 @@ export class PostsShareController {
           postTitle: posts.title,
           avatarUrl: user.profile_picture,
           content: `${user.username} đã chia sẻ bài viết của bạn!!!`,
+          type: ETypeNoti.share,
         };
         await this.notiService.sendPushNotification(
           posts.user.token_device,

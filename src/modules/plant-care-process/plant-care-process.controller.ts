@@ -54,6 +54,7 @@ export class PlantCareProcessController {
   async getMany(@ParsedRequest() req: CrudRequest) {
     const { parsed } = req;
     parsed.filter = [...parsed.filter];
+    parsed.limit = 10;
     return this.plantCareProcessService.getMany(parsed);
   }
 
@@ -76,6 +77,7 @@ export class PlantCareProcessController {
         value: plantId,
       },
     ];
+    parsed.limit = 10;
     return this.plantCareProcessService.getMany(parsed);
   }
 

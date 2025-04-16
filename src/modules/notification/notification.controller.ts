@@ -16,7 +16,6 @@ export class NotificationController {
   @Get('')
   @ApiOperation({ summary: 'Get all notification of current user' })
   async getAllNotification(@CurrentUser() user: User) {
-    console.log(user);
     const data = await this.notificationService.getMany({
       filter: [
         {
@@ -25,6 +24,7 @@ export class NotificationController {
           value: user.token_device,
         },
       ],
+      limit: 10,
     });
     return data;
   }
@@ -81,6 +81,7 @@ export class NotificationController {
           value: user.token_device,
         },
       ],
+      limit: 10,
     });
     if (Array.isArray(data)) {
       return data.length;

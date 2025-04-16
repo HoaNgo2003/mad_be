@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { PostsLikeService } from './posts-like.service';
-import { EReact } from 'src/common/types/data-type';
+import { EReact, ETypeNoti } from 'src/common/types/data-type';
 import { ParamIdPostsDto } from './dtos/paramId.dto';
 import { PostsService } from '../posts/posts.service';
 import { ErrorMessage } from 'src/common/error-message';
@@ -54,11 +54,38 @@ export class PostsLikeController {
             },
           ],
         });
-
+        await this.postsService.updateOne(
+          {
+            filter: [
+              {
+                field: 'id',
+                operator: 'eq',
+                value: posts.id,
+              },
+            ],
+          },
+          {
+            ranking: posts.ranking - 1,
+          },
+        );
         return {
           message: 'You had unliked this post!',
         };
       }
+      await this.postsService.updateOne(
+        {
+          filter: [
+            {
+              field: 'id',
+              operator: 'eq',
+              value: posts.id,
+            },
+          ],
+        },
+        {
+          ranking: posts.ranking + 1,
+        },
+      );
       await this.repo.createOne({
         user_id: user.id,
         type: EReact.like,
@@ -71,6 +98,7 @@ export class PostsLikeController {
         userId: user.id,
         avatarUrl: user.profile_picture,
         content: `${user.username} đã thích bài viết của bạn`,
+        type: ETypeNoti.like,
       };
       if (user.id !== posts.user.id) {
         await this.notiService.sendPushNotification(

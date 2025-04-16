@@ -35,6 +35,7 @@ export class NotificationService extends BaseMySqlService<Notification> {
       commentId?: string;
       commentContent?: string;
       content: string;
+      type: string;
     },
     user: User,
   ) {
@@ -44,25 +45,24 @@ export class NotificationService extends BaseMySqlService<Notification> {
     }
 
     this.token = token;
-    console.log(' Sending notification now...');
-    console.log(' Token:', token);
+
     const message: ExpoPushMessage = {
       to: token,
       sound: 'default',
       title,
       body: body.content,
     };
-
+    const notiDto = {
+      title,
+      body: JSON.stringify(body),
+      token,
+      user,
+    };
+    await this.createOne(notiDto);
     try {
       const receipts: ExpoPushTicket[] =
         await this.expo.sendPushNotificationsAsync([message]);
-      const notiDto = {
-        title,
-        body: JSON.stringify(body),
-        token,
-        user,
-      };
-      await this.createOne(notiDto);
+
       return { success: true, response: receipts };
     } catch (error) {
       console.error(' Error sending Expo push notification:', error);
