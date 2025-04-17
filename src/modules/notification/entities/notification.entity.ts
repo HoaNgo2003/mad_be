@@ -1,5 +1,4 @@
 import { BaseMySqlEntity } from 'src/common/entities/base-mysql.entity';
-import { ETypeNoti } from 'src/common/types/data-type';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 
@@ -14,8 +13,8 @@ export class Notification extends BaseMySqlEntity {
   @Column({ nullable: true })
   token: string;
 
-  @Column({ type: 'enum', enum: ETypeNoti })
-  type: ETypeNoti;
+  @Column({ nullable: true })
+  type: string;
 
   @Column({ default: false })
   seen: boolean;

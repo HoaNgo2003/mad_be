@@ -1,4 +1,10 @@
-import { BadRequestException, Controller, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
@@ -114,5 +120,15 @@ export class PostsLikeController {
     } catch (error) {
       throw new BadRequestException(ErrorMessage.Post.cannotLikeThisPost);
     }
+  }
+
+  @ApiBearerAuth()
+  @Get('check-like/:id')
+  @ApiOperation({ summary: 'Check like post' })
+  async checkLikePosts(
+    @CurrentUser() user: User,
+    @Param() param: ParamIdPostsDto,
+  ) {
+    return this.repo.checkLike(param.id, user.id);
   }
 }

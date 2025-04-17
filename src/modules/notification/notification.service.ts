@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
-import * as cron from 'node-cron';
 import { BaseMySqlService } from 'src/common/services/base-mysql.service';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { User } from '../user/entities/user.entity';
-import { ScheduleTask } from '../schedules/entities/schedule-task.entity';
-import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
 
 @Injectable()
@@ -39,11 +36,6 @@ export class NotificationService extends BaseMySqlService<Notification> {
     },
     user: User,
   ) {
-    if (!Expo.isExpoPushToken(token)) {
-      console.error(' Invalid Expo push token:', token);
-      return;
-    }
-
     this.token = token;
 
     const message: ExpoPushMessage = {
@@ -58,7 +50,13 @@ export class NotificationService extends BaseMySqlService<Notification> {
       token,
       user,
     };
-    await this.createOne(notiDto);
+
+    await this.createOne({ ...notiDto, type: body.type });
+    if (!Expo.isExpoPushToken(token)) {
+      console.error(' Invalid Expo push token:', token);
+      return;
+    }
+
     try {
       const receipts: ExpoPushTicket[] =
         await this.expo.sendPushNotificationsAsync([message]);
