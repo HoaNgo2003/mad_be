@@ -29,7 +29,6 @@ export class RegisterService {
   async createUser(data: CreateUserDto): Promise<User> {
     try {
       const user = await this.usersService.createOne(data);
-      console.log(user);
       return user;
     } catch (e) {
       Logger.error(e);
@@ -101,7 +100,6 @@ export class RegisterService {
       email: user.email,
       name: user.username,
     };
-    console.log(data);
     this.eventEmitter.emit('user.successfully-verified', {
       email: user.email,
       name: data.name,

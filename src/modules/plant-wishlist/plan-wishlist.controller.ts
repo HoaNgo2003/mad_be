@@ -35,6 +35,7 @@ export class PlantWishlistController {
   async getWishList(@CurrentUser() user: User) {
     return this.plantWishlistService.getMany({
       filter: [{ field: 'user.id', operator: 'eq', value: user.id }],
+      limit: 10,
     });
   }
 
@@ -42,10 +43,8 @@ export class PlantWishlistController {
   @Delete('/remove/:id')
   @ApiOperation({ summary: 'Remove a plant from wishlist' })
   @HttpCode(HttpStatus.OK)
-  async removeFromWishList(@Param('id') id: string) {
-    return this.plantWishlistService.hardDeleteOne({
-      filter: [{ field: 'id', operator: 'eq', value: id }],
-    });
+  async removeFromWishList(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.plantWishlistService.removeFromWishList(user.id, id);
   }
 
   @ApiBearerAuth()

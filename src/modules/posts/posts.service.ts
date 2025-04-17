@@ -36,7 +36,13 @@ export class PostsService extends BaseMySqlService<Posts> {
   }
 
   async getListPost(user: User) {
-    const postsData = await this.repo
+    const firstListPost = await this.getPostsFromFollowing(user);
+    const secondListPost = await this.getPostsFromNonFollowing(user);
+    const allPosts = [...firstListPost, ...secondListPost];
+    return allPosts;
+  }
+  async getPostsFromFollowing(user: User) {
+    const posts = await this.repo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
       .leftJoinAndSelect('post.posts_like', 'posts_like')
@@ -44,9 +50,44 @@ export class PostsService extends BaseMySqlService<Posts> {
       .leftJoinAndSelect('comments.user', 'commentUser')
       .leftJoinAndSelect('comments.replies', 'replies')
       .leftJoinAndSelect('replies.user', 'replyUser')
+      .where((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('uf.followingId')
+          .from('user_follow', 'uf')
+          .where('uf.followerId = :userId')
+          .getQuery();
+        return 'post.post_user IN ' + subQuery;
+      })
+      .setParameter('userId', user.id)
+      .orderBy('post.ranking', 'DESC')
       .getMany();
 
-    return this.enrichPosts(postsData, user);
+    return this.enrichPosts(posts, user);
+  }
+  async getPostsFromNonFollowing(user: User) {
+    const posts = await this.repo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.posts_like', 'posts_like')
+      .leftJoinAndSelect('post.comments', 'comments')
+      .leftJoinAndSelect('comments.user', 'commentUser')
+      .leftJoinAndSelect('comments.replies', 'replies')
+      .leftJoinAndSelect('replies.user', 'replyUser')
+      .where((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('uf.followingId')
+          .from('user_follow', 'uf')
+          .where('uf.followerId = :userId')
+          .getQuery();
+        return 'post.post_user NOT IN ' + subQuery;
+      })
+      .setParameter('userId', user.id)
+      .orderBy('post.ranking', 'DESC')
+      .getMany();
+
+    return this.enrichPosts(posts, user);
   }
 
   private async enrichPosts(posts: Posts[], user: User) {

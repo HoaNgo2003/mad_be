@@ -21,6 +21,7 @@ export class PlantSearchHistoryController {
   async getWishList(@CurrentUser() user: User) {
     return this.plantSearchHistoryService.getMany({
       filter: [{ field: 'user.id', operator: 'eq', value: user.id }],
+      limit: 10,
     });
   }
 }

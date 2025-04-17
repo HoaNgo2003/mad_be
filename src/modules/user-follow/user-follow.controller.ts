@@ -13,6 +13,7 @@ import { UserFollowService } from './user-follow.service';
 import { UsersService } from '../user/user.service';
 import { UserIdDto } from './dtos/paramUserId.dto';
 import { NotificationService } from '../notification/notification.service';
+import { ETypeNoti } from 'src/common/types/data-type';
 
 @ApiTags('Follow')
 @Controller({
@@ -56,6 +57,7 @@ export class UserFollowController {
       userId: user.id,
       avatarUrl: user.profile_picture,
       content: `${user.username} mới theo dõi bạn!!!`,
+      type: ETypeNoti.follow,
     };
     await this.notiService.sendPushNotification(
       following.token_device,

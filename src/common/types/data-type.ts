@@ -16,3 +16,14 @@ export enum EReact {
   like = 'like',
   dislike = 'dislike',
 }
+
+export enum ETypeNoti {
+  comment = 'comment',
+  reply = 'reply',
+  like = 'like',
+  follow = 'follow',
+  post = 'post',
+  post_comment = 'post_comment',
+  task = 'task',
+  share = 'share',
+}

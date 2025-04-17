@@ -60,4 +60,11 @@ export class PlantWishlistService extends BaseMySqlService<PlantWishList> {
     }
     return false;
   }
+
+  async removeFromWishList(id: string, plantId: string) {
+    return this.repo.delete({
+      user: { id },
+      plant: { id: plantId },
+    });
+  }
 }

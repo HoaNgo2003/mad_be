@@ -50,6 +50,7 @@ export class PlantBenefitController {
   async getMany(@ParsedRequest() req: CrudRequest) {
     const { parsed } = req;
     parsed.filter = [...parsed.filter];
+    parsed.limit = 10;
     return this.plantBenefitService.getMany(parsed);
   }
 

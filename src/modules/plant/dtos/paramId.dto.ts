@@ -26,3 +26,10 @@ export class ParamIdPlantBenefitDto {
   @IsNotEmpty()
   id: string;
 }
+
+export class ParamIdCategory {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+}

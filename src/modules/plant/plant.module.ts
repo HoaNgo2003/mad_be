@@ -11,6 +11,7 @@ import {
 import { PlantCareProcessModule } from '../plant-care-process/plant-care-process.module';
 import { UploadModule } from '../upload/upload.module';
 import { PlantSearchHistoryModule } from '../plant-search-history/plant-search-history.module';
+import { CategoryModule } from '../category/category.module';
 const validateConstraint = [
   IsPlantBenefitExistContraints,
   IsPlantExistContraints,
@@ -22,6 +23,7 @@ const validateConstraint = [
     PlantCareProcessModule,
     UploadModule,
     PlantSearchHistoryModule,
+    CategoryModule,
   ],
   exports: [PlantService],
   controllers: [PlantController],
