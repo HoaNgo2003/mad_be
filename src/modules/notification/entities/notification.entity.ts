@@ -14,8 +14,8 @@ export class Notification extends BaseMySqlEntity {
   @Column({ nullable: true })
   token: string;
 
-  @Column({ type: 'enum', enum: ETypeNoti })
-  type: ETypeNoti;
+  @Column({ nullable: true })
+  type: string;
 
   @Column({ default: false })
   seen: boolean;

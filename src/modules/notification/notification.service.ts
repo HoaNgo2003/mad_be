@@ -39,11 +39,6 @@ export class NotificationService extends BaseMySqlService<Notification> {
     },
     user: User,
   ) {
-    if (!Expo.isExpoPushToken(token)) {
-      console.error(' Invalid Expo push token:', token);
-      return;
-    }
-
     this.token = token;
 
     const message: ExpoPushMessage = {
@@ -58,7 +53,11 @@ export class NotificationService extends BaseMySqlService<Notification> {
       token,
       user,
     };
-    await this.createOne(notiDto);
+    await this.createOne({ ...notiDto, type: body.type });
+    if (!Expo.isExpoPushToken(token)) {
+      console.error(' Invalid Expo push token:', token);
+      return;
+    }
     try {
       const receipts: ExpoPushTicket[] =
         await this.expo.sendPushNotificationsAsync([message]);
