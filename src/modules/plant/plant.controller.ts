@@ -114,7 +114,7 @@ export class PlantController {
     // Lưu lịch sử tìm kiếm
     if (user) {
       await this.searchHistoryService.createPlantSearchHistory(user.id, {
-        keyword: 'Chi tiết cây',
+        keyword: null,
         plantId: plant.id,
       });
 
@@ -200,6 +200,7 @@ export class PlantController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary' },
+        plant_id: { type: 'string' },
         name: { type: 'string' },
         plant_google_name: { type: 'string' },
       },
@@ -238,11 +239,11 @@ export class PlantController {
         { field: 'name', operator: 'cont', value: dto.name },
       ];
     }
-    await this.searchHistoryService.createOne({
+    await this.searchHistoryService.createPlantSearchHistory(user.id, {
       keyword: dto.name,
       plant_google_name: dto.plant_google_name,
-      plant_url: file ? file.path : null,
-      user,
+      plantId: dto.plant_id,
+      plant_url: searchHistoryDto.plant_url || null,
     });
     parsed.join = [
       ...parsed.join,

@@ -84,6 +84,9 @@ export class QueryName {
 
   @IsOptional()
   file?: any;
+
+  @IsOptional()
+  plant_id?: string;
 }
 export class NameQuery {
   @ApiProperty()

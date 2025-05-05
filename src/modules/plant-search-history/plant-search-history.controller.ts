@@ -32,4 +32,12 @@ export class PlantSearchHistoryController {
   async getTop10Keyword(@CurrentUser() user: User) {
     return this.plantSearchHistoryService.getTopKeywordsByUser(user.id);
   }
+
+  @ApiBearerAuth()
+  @Get('top3')
+  @ApiOperation({ summary: ' Get top 3 plant recently search' })
+  @HttpCode(HttpStatus.OK)
+  async getTop3Plant(@CurrentUser() user: User) {
+    return this.plantSearchHistoryService.getRecentSearches(user.id);
+  }
 }

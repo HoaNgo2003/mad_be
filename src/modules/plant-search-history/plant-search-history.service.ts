@@ -34,7 +34,7 @@ export class PlantSearchHistoryService extends BaseMySqlService<PlantSearchHisto
       plant_google_name: searchData.plant_google_name,
       plant_url: searchData.plant_url,
       user: { id: userId } as any,
-      plant: searchData.plantId ? ({ id: searchData.plantId } as any) : null,
+      plant: +searchData.plantId ? ({ id: +searchData.plantId } as any) : null,
     });
 
     return this.repo.save(newRecord);
@@ -82,5 +82,18 @@ export class PlantSearchHistoryService extends BaseMySqlService<PlantSearchHisto
     }
 
     return results;
+  }
+
+  async getRecentSearches(userId: string) {
+    const recentSearches = await this.repo
+      .createQueryBuilder('plantSearchHistory')
+      .leftJoinAndSelect('plantSearchHistory.plant', 'plant')
+      .leftJoinAndSelect('plantSearchHistory.user', 'user')
+      .where('plantSearchHistory.user_history = :userId', { userId })
+      .orderBy('plantSearchHistory.createdAt', 'DESC')
+      .limit(3)
+      .getMany();
+
+    return recentSearches;
   }
 }
