@@ -91,7 +91,7 @@ export class PostsCommentController {
         commentId: newComment.id,
         commentContent: newComment.content,
         content: `${user.username} đã trả lời bình luận của bạn.`,
-        type: ETypeNoti.reply,
+        type: ETypeNoti.comment,
       };
       await this.notiService.sendPushNotification(
         parentComment.user.token_device,

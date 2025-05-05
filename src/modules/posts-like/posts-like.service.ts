@@ -37,4 +37,16 @@ export class PostsLikeService extends BaseMySqlService<PostsLike> {
     });
     return data.length;
   }
+
+  async checkLike(id: string, userId: string) {
+    const data = await this.repo.findOne({
+      where: {
+        posts: {
+          id,
+        },
+        user_id: userId,
+      },
+    });
+    return !!data;
+  }
 }

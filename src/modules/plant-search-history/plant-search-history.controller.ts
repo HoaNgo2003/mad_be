@@ -24,4 +24,12 @@ export class PlantSearchHistoryController {
       limit: 10,
     });
   }
+
+  @ApiBearerAuth()
+  @Get('daily-search')
+  @ApiOperation({ summary: 'Get user search history' })
+  @HttpCode(HttpStatus.OK)
+  async getTop10Keyword(@CurrentUser() user: User) {
+    return this.plantSearchHistoryService.getTopKeywordsByUser(user.id);
+  }
 }

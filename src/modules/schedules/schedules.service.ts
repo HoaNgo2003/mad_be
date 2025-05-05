@@ -360,7 +360,7 @@ export class SchedulesService {
             userId: user.id,
             postId: null,
             postTitle: null,
-            avatarUrl: null,
+            avatarUrl: user.profile_picture,
             commentId: null,
             commentContent: null,
             content: `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}. Nhiệm vụ: ${task.task_name}. Chi tiết: ${task.notes || 'Không có ghi chú'}`,

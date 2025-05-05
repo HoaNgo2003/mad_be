@@ -229,6 +229,18 @@ export class PlantController {
       ];
     }
 
+    if (dto?.name) {
+      parsed.filter = [
+        ...parsed.filter,
+        { field: 'name', operator: 'cont', value: dto.name },
+      ];
+    }
+    await this.searchHistoryService.createOne({
+      keyword: dto.name,
+      plant_google_name: dto.plant_google_name,
+      plant_url: file ? file.path : null,
+      user,
+    });
     parsed.join = [
       ...parsed.join,
       { field: 'plant_benefits' },
