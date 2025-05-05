@@ -31,7 +31,6 @@ export class NotificationController {
           order: 'DESC',
         },
       ],
-      limit: 10,
     });
     return data;
   }

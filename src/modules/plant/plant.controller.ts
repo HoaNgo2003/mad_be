@@ -147,6 +147,9 @@ export class PlantController {
         name: { type: 'string' },
         description: { type: 'string' },
         category_id: { type: 'string' },
+        environment: { type: 'string' },
+        usage: { type: 'string' },
+        take_care: { type: 'string' },
         file: { type: 'string', format: 'binary' },
         plant_benefits: {
           type: 'string',

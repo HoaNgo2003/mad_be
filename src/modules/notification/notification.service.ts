@@ -33,7 +33,6 @@ export class NotificationService extends BaseMySqlService<Notification> {
       commentContent?: string;
       content: string;
       type: string;
-      type: string;
     },
     user: User,
   ) {

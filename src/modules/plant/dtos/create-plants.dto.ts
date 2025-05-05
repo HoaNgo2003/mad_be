@@ -22,6 +22,18 @@ export class CreatePlantDto {
 
   @IsString()
   @IsNotEmpty()
+  environment: string;
+
+  @IsString()
+  @IsNotEmpty()
+  usage: string;
+
+  @IsString()
+  @IsNotEmpty()
+  take_care: string;
+
+  @IsString()
+  @IsNotEmpty()
   description: string;
 
   @IsString()

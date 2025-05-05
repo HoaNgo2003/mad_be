@@ -16,6 +16,15 @@ export class Plant extends BaseMySqlEntity {
   @Column()
   plant_url: string;
 
+  @Column()
+  environment: string;
+
+  @Column()
+  usage: string;
+
+  @Column()
+  take_care: string;
+
   @OneToMany(() => PlantBenefit, (benefit) => benefit.plant, {
     cascade: true,
   })
