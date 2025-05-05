@@ -217,7 +217,7 @@ export class PlantController {
     let searchHistoryDto = {
       plant_google_name: dto.plant_google_name || null,
       keyword: dto.name,
-      plant_url: null,
+      plant_url: "",
       user,
     };
     if (file) {

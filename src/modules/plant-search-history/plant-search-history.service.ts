@@ -87,13 +87,24 @@ export class PlantSearchHistoryService extends BaseMySqlService<PlantSearchHisto
   async getRecentSearches(userId: string) {
     const recentSearches = await this.repo
       .createQueryBuilder('plantSearchHistory')
-      .leftJoinAndSelect('plantSearchHistory.plant', 'plant')
-      .leftJoinAndSelect('plantSearchHistory.user', 'user')
+      .leftJoinAndSelect('plantSearchHistory.plant', 'plant') // Join với bảng plant
       .where('plantSearchHistory.user_history = :userId', { userId })
-      .orderBy('plantSearchHistory.createdAt', 'DESC')
-      .limit(3)
+      .andWhere('plantSearchHistory.plant IS NOT NULL') // Chỉ lấy các bản ghi có plant khác NULL
+      .orderBy('plantSearchHistory.createdAt', 'DESC') // Sắp xếp theo thời gian tạo
       .getMany();
-
-    return recentSearches;
+  
+    // Lọc để chỉ lấy nhiều nhất 3 plant với id khác nhau
+    const uniquePlants = [];
+    const plantIds = new Set();
+  
+    for (const search of recentSearches) {
+      if (search.plant && !plantIds.has(search.plant.id)) {
+        uniquePlants.push(search.plant);
+        plantIds.add(search.plant.id);
+      }
+      if (uniquePlants.length >= 3) break; // Dừng khi đã lấy đủ 3 plant
+    }
+  
+    return uniquePlants;
   }
 }

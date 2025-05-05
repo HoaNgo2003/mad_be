@@ -5,7 +5,7 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity()
 export class PlantSearchHistory extends BaseMySqlEntity {
-  @Column()
+  @Column({ default: null, nullable: true })
   keyword: string;
 
   @Column({ default: null })
