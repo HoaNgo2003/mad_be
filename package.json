@@ -47,6 +47,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cron": "^2.4.4",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "expo-server-sdk": "^3.14.0",
     "express": "^4.21.2",

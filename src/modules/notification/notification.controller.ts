@@ -19,12 +19,18 @@ export class NotificationController {
     const data = await this.notificationService.getMany({
       filter: [
         {
-          field: 'token',
+          field: 'user.id',
           operator: 'eq',
-          value: user.token_device,
+          value: user.id,
         },
       ],
       limit: 10,
+      sort: [
+        {
+          field: 'createdAt',
+          order: 'DESC',
+        },
+      ],
     });
     return data;
   }
@@ -76,9 +82,9 @@ export class NotificationController {
           value: false,
         },
         {
-          field: 'token',
+          field: 'user.id',
           operator: 'eq',
-          value: user.token_device,
+          value: user.id,
         },
       ],
       limit: 10,
@@ -102,12 +108,5 @@ export class NotificationController {
         },
       ],
     });
-  }
-
-  @ApiBearerAuth()
-  @Post('read-notification/:id')
-  @ApiOperation({ summary: 'Seen notification' })
-  async readNotification(@Param('id') id: string) {
-    return this.notificationService.markNotificationAsRead(id);
   }
 }
