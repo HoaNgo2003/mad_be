@@ -345,6 +345,7 @@ export class SchedulesService {
         try {
           // Lấy thông tin người dùng
           const user = task.rule.user_plant.user;
+          const plant = task.rule.user_plant.plant;
 
           // Lấy token thiết bị của người dùng
           const userDeviceToken = await this.getUserDeviceToken(user.id);
@@ -353,23 +354,28 @@ export class SchedulesService {
             this.logger.warn(`Không tìm thấy device token cho user ${user.id}`);
             continue;
           }
-
+          console.log("task", task);
           // Gửi thông báo
           const data = {
             username: user.full_name, // Tên người dùng
             userId: user.id,
             postId: null,
             postTitle: null,
-            avatarUrl: user.profile_picture,
+            plantUrl: plant.plant_url,
             commentId: null,
             commentContent: null,
+            taskId: task.id,
+            taskName: task.task_name,
+            taskScheduledAt: task.scheduled_at,
+            taskStatus: task.status,
+            taskNotes: task.notes,
             content: `Sắp đến giờ chăm sóc ${task.rule.user_plant.plant.name}. Nhiệm vụ: ${task.task_name}. Chi tiết: ${task.notes || 'Không có ghi chú'}`,
             type: ETypeNoti.task,
           };
           const notificationResult =
             await this.notificationService.sendPushNotification(
               userDeviceToken,
-              'Thông báo công việc', // Tiêu đề thông báo
+              'Thông báo công việc',
               data,
               user,
             );
