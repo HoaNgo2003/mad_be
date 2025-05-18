@@ -49,6 +49,7 @@ import { SearchHistory } from './modules/search-history/entities/search-history.
 import { SearchHistoryModule } from './modules/search-history/search-history.module';
 import { Category } from './modules/category/entities/category.entity';
 import { CategoryModule } from './modules/category/category.module';
+import { PlantIdentifyModule } from './modules/plant-identify/plant-identify.module';
 
 @Module({
   imports: [
@@ -111,6 +112,7 @@ import { CategoryModule } from './modules/category/category.module';
     ScheduleModule.forRoot(),
     SearchHistoryModule,
     CategoryModule,
+    PlantIdentifyModule
   ],
   controllers: [AppController],
   providers: [
