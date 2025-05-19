@@ -45,7 +45,7 @@ export class UserFollowController {
     });
     const checkFollow = await this.repo.checkFollow(user.id, following.id);
     if (checkFollow) {
-      throw new BadRequestException('You are already following this user');
+      throw new BadRequestException('Bạn đã theo dõi người dùng này rồi!!!');
     }
 
     const data = await this.repo.createOne({
@@ -73,7 +73,7 @@ export class UserFollowController {
   @ApiOperation({ summary: 'unfollow other user' })
   async unfollowUser(@CurrentUser() user: User, @Param() param: UserIdDto) {
     const data = await this.repo.unFollow(user.id, param.id);
-    const following = await this.usersService.getOne({
+    await this.usersService.getOne({
       filter: [
         {
           field: 'id',

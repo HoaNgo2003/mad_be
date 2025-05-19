@@ -234,7 +234,7 @@ export class LoginService {
       throw new BadRequestException(error);
     }
     return {
-      message: 'Change password success, login to continue!',
+      message: 'Thay đổi mật khảu thành công, đăng nhập để tiếp tục',
     };
   }
 }

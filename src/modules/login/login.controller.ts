@@ -50,7 +50,7 @@ export class LoginController {
     if (!data) {
       throw new BadRequestException(ErrorMessage.User.optInvalid);
     }
-    return { message: 'OTP verified successfully' };
+    return { message: 'xác thực mã OTP thành công' };
   }
 
   @Public()

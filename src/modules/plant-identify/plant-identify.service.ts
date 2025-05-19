@@ -9,7 +9,7 @@ export class PlantIdentifyService {
 
   async identify(file: Express.Multer.File): Promise<any> {
     if (!file) {
-      throw new BadRequestException('Image is required');
+      throw new BadRequestException('Không được để ảnh trống');
     }
 
     const form = new FormData();
@@ -32,7 +32,9 @@ export class PlantIdentifyService {
       }
 
       // Tìm cây trong DB theo class_name (tên tiếng Việt)
-      const plantInfo = await this.plantService.getPlantByName(aiResult.class_name);
+      const plantInfo = await this.plantService.getPlantByName(
+        aiResult.class_name,
+      );
 
       // Nếu không tìm thấy cây trong hệ thống
       if (!plantInfo) {

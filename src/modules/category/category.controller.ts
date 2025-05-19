@@ -52,7 +52,7 @@ export class CategoryController {
       filter: [{ field: 'id', operator: 'eq', value: id }],
     });
     if (!category) {
-      throw new BadRequestException('Category not found');
+      throw new BadRequestException('Không tìm thấy danh mục');
     }
     return this.categoryService.updateOne(
       {
@@ -70,7 +70,7 @@ export class CategoryController {
       filter: [{ field: 'id', operator: 'eq', value: id }],
     });
     if (!category) {
-      throw new BadRequestException('Category not found');
+      throw new BadRequestException('Không tìm thấy danh mục');
     }
     return this.categoryService.hardDeleteOne({
       filter: [{ field: 'id', operator: 'eq', value: id }],

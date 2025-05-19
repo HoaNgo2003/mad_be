@@ -84,7 +84,7 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
       const entity = this.repository.create(dto);
       const result: T = await this.repository.save(entity);
       if (!result) {
-        throw new BadRequestException('Failed to create entity');
+        throw new BadRequestException('Tạo bản ghi không thành công');
       }
       return result;
     } catch (error) {

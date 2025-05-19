@@ -94,7 +94,7 @@ export class RegisterService {
       );
     } catch (error) {
       Logger.error(error);
-      throw new BadRequestException('Failed to verify OTP');
+      throw new BadRequestException('Xác thực mã OTP thất bại');
     }
     const data = {
       email: user.email,
