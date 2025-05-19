@@ -38,6 +38,7 @@ import { UploadService } from '../upload/upload.service';
 import { CurrentUser } from 'src/common/decorator/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { PlantSearchHistoryService } from '../plant-search-history/plant-search-history.service';
+import { CategoryService } from '../category/category.service';
 
 @ApiTags('Plant')
 @Controller({
@@ -50,6 +51,7 @@ export class PlantController {
     private readonly plantBenefitService: PlantBenefitService,
     private readonly uploadService: UploadService,
     private readonly searchHistoryService: PlantSearchHistoryService,
+    private readonly categoryService: CategoryService,
   ) {
     // Swagger metadata setup (for getMany)
     const getManyMetadata = Swagger.getParams(this.getMany);
@@ -203,6 +205,7 @@ export class PlantController {
         plant_id: { type: 'string' },
         name: { type: 'string' },
         plant_google_name: { type: 'string' },
+        category: { type: 'string' },
       },
     },
   })
@@ -217,9 +220,10 @@ export class PlantController {
     let searchHistoryDto = {
       plant_google_name: dto.plant_google_name || null,
       keyword: dto.name,
-      plant_url: "",
+      plant_url: '',
       user,
     };
+    let category = null;
     if (file) {
       const { url } = await this.uploadService.uploadFile(file);
       console.log('Uploaded file URL:', url);
@@ -232,13 +236,32 @@ export class PlantController {
         { field: 'name', operator: 'cont', value: dto.plant_google_name },
       ];
     }
-
+    if (dto?.category) {
+      category = await this.categoryService.getMany({
+        filter: [
+          {
+            field: 'name',
+            operator: 'cont',
+            value: dto.category,
+          },
+        ],
+      });
+      parsed.filter = [
+        ...parsed.filter,
+        {
+          field: 'category.id',
+          operator: 'in',
+          value: category.map((item) => item.id),
+        },
+      ];
+    }
     if (dto?.name) {
       parsed.filter = [
         ...parsed.filter,
         { field: 'name', operator: 'cont', value: dto.name },
       ];
     }
+
     await this.searchHistoryService.createPlantSearchHistory(user.id, {
       keyword: dto.name,
       plant_google_name: dto.plant_google_name,

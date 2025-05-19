@@ -80,6 +80,11 @@ export class QueryName {
   @ApiProperty({ required: false, nullable: true })
   @IsString()
   @IsOptional()
+  category?: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsString()
+  @IsOptional()
   plant_google_name?: string | null;
 
   @IsOptional()
