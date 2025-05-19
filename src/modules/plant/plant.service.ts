@@ -171,4 +171,20 @@ export class PlantService extends BaseMySqlService<Plant> {
       ],
     });
   }
+  async getPlantByName(name: string) {
+    return this.getOne({
+      filter: [
+        {
+          field: 'name',
+          operator: 'eq',
+          value: name,
+        },
+      ],
+      join: [
+        { field: 'plant_benefits' },
+        { field: 'plant_processes' },
+        { field: 'category' },
+      ],
+    });
+  }  
 }
