@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, Min, Matches } from 'class-validator';
 
 export class CreateScheduleRuleDto {
   @ApiProperty({
@@ -21,9 +21,12 @@ export class CreateScheduleRuleDto {
   @IsNotEmpty()
   repeat_interval: number;
 
-  @ApiProperty({ example: '08:00:00', description: 'Giờ thực hiện công việc (HH:mm:ss)' })
+  @ApiProperty({ example: '08:00:00', description: 'Giờ thực hiện công việc (HH:mm hoặc HH:mm:ss)' })
   @IsString()
   @IsNotEmpty()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/, {
+    message: 'Giờ thực hiện công việc chưa được nhập',
+  })
   time_of_day: string;
 
   @ApiProperty({ example: 'Tưới cây định kỳ vào sáng sớm', description: 'Ghi chú (không bắt buộc)', required: false })

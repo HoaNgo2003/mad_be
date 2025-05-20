@@ -41,8 +41,7 @@ export class UserPlantService {
 
     const record = this.repo.create({
       user,
-      plant,
-      note: dto.note,
+      plant
     });
 
     const saved = await this.repo.save(record);

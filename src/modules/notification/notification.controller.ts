@@ -24,7 +24,6 @@ export class NotificationController {
           value: user.id,
         },
       ],
-      limit: 10,
       sort: [
         {
           field: 'createdAt',

@@ -31,8 +31,6 @@ export class PlantSearchHistoryService extends BaseMySqlService<PlantSearchHisto
   ) {
     const newRecord = this.repo.create({
       keyword: searchData.keyword,
-      plant_google_name: searchData.plant_google_name,
-      plant_url: searchData.plant_url,
       user: { id: userId } as any,
       plant: +searchData.plantId ? ({ id: +searchData.plantId } as any) : null,
     });

@@ -8,12 +8,6 @@ export class PlantSearchHistory extends BaseMySqlEntity {
   @Column({ default: null, nullable: true })
   keyword: string;
 
-  @Column({ default: null })
-  plant_google_name: string;
-
-  @Column({ default: null })
-  plant_url: string;
-
   @ManyToOne(() => User, (user) => user.plant_search_histories, {
     onDelete: 'CASCADE',
   })

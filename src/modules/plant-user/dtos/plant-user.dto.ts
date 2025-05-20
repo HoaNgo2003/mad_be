@@ -11,9 +11,4 @@ export class CreateUserPlantDto {
     @IsString()
     @IsNotEmpty()
     plant_id: string;
-
-    @ApiProperty({ example: 'Cây đặt ở ban công', required: false })
-    @IsString()
-    @IsOptional()
-    note?: string;
 }

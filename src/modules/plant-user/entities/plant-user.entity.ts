@@ -11,7 +11,4 @@ export class UserPlants extends BaseMySqlEntity{
 
   @ManyToOne(() => Plant, { onDelete: 'CASCADE' })
   plant: Plant;
-
-  @Column({ nullable: true })
-  note: string;
 }
