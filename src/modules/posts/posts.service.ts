@@ -60,7 +60,7 @@ export class PostsService extends BaseMySqlService<Posts> {
         return 'post.post_user IN ' + subQuery;
       })
       .setParameter('userId', user.id)
-      .orderBy('post.ranking', 'DESC')
+      .orderBy('post.createdAt', 'DESC')
       .getMany();
 
     return this.enrichPosts(posts, user);
@@ -84,7 +84,7 @@ export class PostsService extends BaseMySqlService<Posts> {
         return 'post.post_user NOT IN ' + subQuery;
       })
       .setParameter('userId', user.id)
-      .orderBy('post.ranking', 'DESC')
+      .orderBy('post.createdAt', 'DESC')
       .getMany();
 
     return this.enrichPosts(posts, user);

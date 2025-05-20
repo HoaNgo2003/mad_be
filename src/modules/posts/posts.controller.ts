@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -34,6 +36,7 @@ import { PostsShareService } from '../posts-share/posts-share.service';
 import { UserIdDto } from '../user-follow/dtos/paramUserId.dto';
 import { UsersService } from '../user/user.service';
 import { ETypeNoti } from 'src/common/types/data-type';
+import { CrudRequest, ParsedRequest } from '@dataui/crud';
 
 @ApiTags('Posts')
 @Controller({
@@ -145,6 +148,18 @@ export class PostsController {
   @ApiOperation({ summary: 'get list posts' })
   async getAll(@CurrentUser() user: User) {
     return this.repo.getListPost(user);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'search posts by title',
+  })
+  @Get('list')
+  @HttpCode(HttpStatus.OK)
+  async getMany(@ParsedRequest() req: CrudRequest) {
+    const { parsed } = req;
+    parsed.filter = [...parsed.filter];
+    return this.repo.getMany(parsed);
   }
 
   @ApiBearerAuth()
