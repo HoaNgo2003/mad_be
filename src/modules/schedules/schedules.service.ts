@@ -29,7 +29,7 @@ export class SchedulesService {
     private readonly userRepo: Repository<User>,
 
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async createRule(data: CreateScheduleRuleDto) {
     const userPlant = await this.userPlantRepo.findOne({
@@ -154,6 +154,7 @@ export class SchedulesService {
     });
   }
 
+
   async getTasksByUserAndDate(userId: number, date: string) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
@@ -183,7 +184,17 @@ export class SchedulesService {
       ])
       .getMany();
   }
+  async getTaskById(taskId: string) {
+    const task = await this.scheduleTaskRepo.findOne({
+      where: { id: taskId },
+    });
 
+    if (!task) {
+      throw new NotFoundException(`Không tìm thấy task với ID ${taskId}`);
+    }
+
+    return task;
+  }
   async getPastTasksByRule(ruleId: string, date?: string) {
     const target = date ? new Date(date) : new Date();
     target.setHours(0, 0, 0, 0); // Lấy từ đầu ngày

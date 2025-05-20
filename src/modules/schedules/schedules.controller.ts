@@ -20,7 +20,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
   path: 'schedules',
 })
 export class SchedulesController {
-  constructor(private readonly schedulesService: SchedulesService) {}
+  constructor(private readonly schedulesService: SchedulesService) { }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create schedule rule' })
@@ -163,5 +163,12 @@ export class SchedulesController {
         error: error.message,
       };
     }
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get task by id' })
+  @Get('/tasks/:id')
+  async getTaskById(@Param('id') id: string) {
+    return this.schedulesService.getTaskById(id);
   }
 }

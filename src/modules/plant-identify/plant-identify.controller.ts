@@ -15,7 +15,10 @@ import {
     ApiBody,
   } from '@nestjs/swagger';
   
-  @Controller('plant-identify')
+@Controller({
+  version: '1',
+  path: 'plant-identify',
+})
   export class PlantIdentifyController {
     constructor(private readonly plantIdentifyService: PlantIdentifyService) {}
   

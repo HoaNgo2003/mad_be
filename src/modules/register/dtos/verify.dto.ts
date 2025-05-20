@@ -10,7 +10,7 @@ export class VerifyUserDto {
 
   @ApiProperty({ example: 'johndoe@example.com', description: 'User email' })
   @Validate(IsUserNotFoundContraints, [{ field: 'email' }], {
-    message: 'User not found',
+    message: 'Người dùng không tồn tại',
   })
   @IsEmail()
   @IsNotEmpty()

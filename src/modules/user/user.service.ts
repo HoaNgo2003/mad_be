@@ -25,7 +25,7 @@ export class UsersService extends BaseMySqlService<User> {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('Người dùng không tồn tại');
     }
 
     return {

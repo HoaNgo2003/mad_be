@@ -66,8 +66,8 @@ export class UserController {
   @ApiBearerAuth()
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
-  @ApiResponse({ status: 200, description: 'User found', type: User })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 200, description: 'Tìm thấy người dùng', type: User })
+  @ApiResponse({ status: 404, description: 'Ngưởi dùng không tồn tại' })
   async findOne(@Param('id') id: string): Promise<any> {
     const [followingCount, followerCount] = await Promise.all([
       this.userFollowService.countFollowing(id),
@@ -101,7 +101,7 @@ export class UserController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user' })
   @ApiResponse({ status: 200, description: 'User deleted' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 404, description: 'Người dùng không tồn tại' })
   async remove(@Param('id') id: string): Promise<any> {
     return this.service.softDeleteOne({
       filter: [
@@ -118,7 +118,7 @@ export class UserController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 404, description: 'Người dùng không tồn tại' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

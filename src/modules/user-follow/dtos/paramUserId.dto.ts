@@ -5,7 +5,7 @@ import { IsUserNotFoundContraints } from 'src/common/validators/user.validate';
 export class UserIdDto {
   @ApiProperty()
   @Validate(IsUserNotFoundContraints, [{ field: 'id' }], {
-    message: 'User not found',
+    message: 'Người dùng không tồn tại',
   })
   @IsString()
   @IsNotEmpty()

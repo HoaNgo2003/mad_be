@@ -15,7 +15,7 @@ export class LoginUserDto {
 
   @ApiProperty({ example: 'johndoe@example.com', description: 'User email' })
   @Validate(IsUserNotFoundContraints, [{ field: 'email' }], {
-    message: 'User not found',
+    message: 'Người dùng không tồn tại',
   })
   @IsEmail()
   @IsNotEmpty()
@@ -25,7 +25,7 @@ export class LoginUserDto {
 export class ForgotPasswordOTPDto {
   @ApiProperty({ example: 'johndoe@example.com', description: 'User email' })
   @Validate(IsUserNotFoundContraints, [{ field: 'email' }], {
-    message: 'User not found',
+    message: 'Người dùng không tồn tại',
   })
   @IsEmail()
   @IsNotEmpty()
@@ -57,7 +57,7 @@ export class ForgotPasswordDto {
 
   @ApiProperty({ example: 'johndoe@example.com', description: 'User email' })
   @Validate(IsUserNotFoundContraints, [{ field: 'email' }], {
-    message: 'User not found',
+    message: 'Người dùng không tồn tại',
   })
   @IsEmail()
   @IsNotEmpty()

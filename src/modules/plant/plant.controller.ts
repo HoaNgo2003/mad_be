@@ -116,7 +116,7 @@ export class PlantController {
     // Lưu lịch sử tìm kiếm
     if (user) {
       await this.searchHistoryService.createPlantSearchHistory(user.id, {
-        keyword: null,
+        keyword: plant.name,
         plantId: plant.id,
       });
 

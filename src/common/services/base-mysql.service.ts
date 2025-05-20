@@ -35,7 +35,7 @@ import { pageQuery } from '../paging/paging.helper';
 
 @Injectable()
 export class BaseMySqlService<T extends BaseMySqlEntity> {
-  constructor(protected readonly repository: Repository<T>) {}
+  constructor(protected readonly repository: Repository<T>) { }
 
   async getOne(parsed: Partial<ParsedRequestParams>): Promise<T | null> {
     const where = this.convertFilter(parsed.filter) || {};
@@ -167,15 +167,24 @@ export class BaseMySqlService<T extends BaseMySqlEntity> {
     };
   }
 
-  protected createFindOneOptions(
-    parsed: Partial<ParsedRequestParams>,
-  ): FindOneOptions<T> {
-    return {
-      relations: this.createPopulate(parsed.join),
-      order: this.convertSort(parsed.sort),
-    };
+ protected createFindOneOptions(
+  parsed: Partial<ParsedRequestParams>,
+): FindOneOptions<T> {
+  const relations = this.createPopulate(parsed.join);
+
+  // Chỉ thêm 'category' nếu entity là Plant
+  if (
+    this.repository.metadata.tableName === 'plant' && // hoặc tên table đúng với entity Plant của bạn
+    !relations.includes('category')
+  ) {
+    relations.push('category');
   }
 
+  return {
+    relations,
+    order: this.convertSort(parsed.sort),
+  };
+}
   protected convertSort(sort: QuerySort[] = []): FindOptionsOrder<T> {
     return sort.reduce((acc, { field, order }) => {
       acc[field] = order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
