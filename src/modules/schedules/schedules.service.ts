@@ -30,7 +30,7 @@ export class SchedulesService {
 
     private readonly notificationService: NotificationService,
   ) { }
-
+  //tạo schedule rule
   async createRule(data: CreateScheduleRuleDto) {
     const userPlant = await this.userPlantRepo.findOne({
       where: { id: data.user_plant_id },
@@ -49,6 +49,7 @@ export class SchedulesService {
       time_of_day: data.time_of_day,
       notes: data.notes,
     });
+    console.log('rule', rule);
     const savedRule = await this.scheduleRuleRepo.save(rule);
 
     // Gọi hàm sinh task từ rule vừa tạo
@@ -61,7 +62,7 @@ export class SchedulesService {
   async getRuleById(id: string) {
     const rule = await this.scheduleRuleRepo.findOne({
       where: { id },
-      relations: [], // bỏ qua các entity quan hệ
+      relations: [],
     });
 
     if (!rule) {

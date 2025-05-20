@@ -52,6 +52,6 @@ export class RegisterController {
       otp: data.otp,
       expireAt: data.expired_at,
     });
-    return { message: 'OTP has been sent' };
+    return { message: 'OTP đã được gửi' };
   }
 }
