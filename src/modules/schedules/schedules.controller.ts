@@ -111,10 +111,6 @@ export class SchedulesController {
   @Cron(CronExpression.EVERY_MINUTE)
   async handleTaskNotifications() {
     try {
-      // 1. Sinh task mới nếu cần
-      // await this.schedulesService.generateDailyTasksForAllRules();
-
-      // 2. Gửi thông báo cho các task sắp diễn ra
       await this.schedulesService.generateUpcomingTaskNotifications();
     } catch (error) {
       console.error('Lỗi trong quy trình xử lý task:', error);

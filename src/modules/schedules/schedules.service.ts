@@ -83,7 +83,7 @@ export class SchedulesService {
       order: {
         createdAt: 'DESC',
       },
-      relations: [], // bỏ qua các entity quan hệ
+      relations: [],
     });
   }
 
@@ -97,6 +97,10 @@ export class SchedulesService {
       throw new NotFoundException(`Không tìm thấy rule với ID ${ruleId}`);
     }
 
+    // Kiểm tra có thay đổi repeat_interval không
+    const isRepeatIntervalChanged =
+      data.repeat_interval !== undefined && data.repeat_interval !== rule.repeat_interval;
+
     // Cập nhật rule
     const updatedRule = this.scheduleRuleRepo.merge(rule, data);
     const savedRule = await this.scheduleRuleRepo.save(updatedRule);
@@ -105,18 +109,27 @@ export class SchedulesService {
       where: {
         rule: { id: ruleId },
         status: 'pending',
-        deletedAt: IsNull(),
       },
     });
 
-    for (const task of pendingTasks) {
-      if (data.task_name) task.task_name = data.task_name;
-      if (data.time_of_day) {
-        const [h, m] = data.time_of_day.split(':').map(Number);
-        task.scheduled_at.setHours(h, m, 0, 0);
+    if (isRepeatIntervalChanged) {
+      // Nếu repeat_interval thay đổi, xóa cứng các task pending và tạo lại 3 task mới
+      await this.scheduleTaskRepo.delete({
+        rule: { id: ruleId },
+        status: 'pending',
+      });
+      await this.generateTasksForRule(ruleId);
+    } else {
+      // Nếu không thay đổi repeat_interval, chỉ update các trường khác
+      for (const task of pendingTasks) {
+        if (data.task_name) task.task_name = data.task_name;
+        if (data.time_of_day) {
+          const [h, m] = data.time_of_day.split(':').map(Number);
+          task.scheduled_at.setHours(h, m, 0, 0);
+        }
+        if (data.notes !== undefined) task.notes = data.notes;
+        await this.scheduleTaskRepo.save(task);
       }
-      if (data.notes !== undefined) task.notes = data.notes;
-      await this.scheduleTaskRepo.save(task);
     }
 
     return {
@@ -138,10 +151,11 @@ export class SchedulesService {
       },
     });
 
-    for (const task of pendingTasks) {
-      task.deletedAt = new Date();
-      await this.scheduleTaskRepo.save(task);
-    }
+    // Xóa cứng các task pending liên quan
+    await this.scheduleTaskRepo.delete({
+      rule: { id: ruleId },
+      status: 'pending',
+    });
 
     await this.scheduleRuleRepo.softDelete(ruleId);
     return { message: `Đã xóa rule ID ${ruleId} thành công.` };
@@ -218,7 +232,7 @@ export class SchedulesService {
       ])
       .getMany();
   }
-
+  //đánh dấu hoàn thành
   async markTaskAsDone(taskId: string) {
     const task = await this.scheduleTaskRepo.findOne({ where: { id: taskId } });
 
@@ -235,7 +249,7 @@ export class SchedulesService {
 
     return { message: `Hoàn thành` };
   }
-
+  //sinh nhiệm vụ 3 từ rule
   async generateTasksForRule(ruleId: string) {
     const rule = await this.scheduleRuleRepo.findOne({
       where: { id: ruleId },
@@ -282,7 +296,7 @@ export class SchedulesService {
     return this.scheduleTaskRepo.save(tasksToInsert);
   }
 
-  // ✅ Sinh nhiệm vụ hằng ngày cho tất cả các quy tắc
+  // Sinh nhiệm vụ hằng ngày cho tất cả các quy tắc
   async generateDailyTasksForAllRules() {
     // 1. Lấy tất cả các quy tắc còn hoạt động
     const activeRules = await this.scheduleRuleRepo.find({

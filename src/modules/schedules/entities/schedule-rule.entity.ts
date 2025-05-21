@@ -18,8 +18,5 @@ export class ScheduleRule extends BaseMySqlEntity{
   time_of_day: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
-
-  @Column({ type: 'text', nullable: true })
   notes: string | null;
 }

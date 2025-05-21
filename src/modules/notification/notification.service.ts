@@ -19,7 +19,7 @@ export class NotificationService extends BaseMySqlService<Notification> {
     super(repo);
     this.expo = new Expo();
   }
-
+  // gửi thông báo đến một người dùng
   async sendPushNotification(
     token: string,
     title: string,
